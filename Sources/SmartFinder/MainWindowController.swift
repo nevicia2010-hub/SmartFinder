@@ -132,7 +132,7 @@ private final class SmartFinderWindow: NSWindow {
     }
 }
 
-final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSWindowDelegate {
+final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSWindowDelegate, NSMenuItemValidation {
     private let gridController = FileGridViewController()
     private let mountedVolumeProvider = MountedVolumeProvider()
     private let pathField = NSTextField(string: "")
@@ -141,6 +141,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
     private let iconSizeSlider = NSSlider(value: 96, minValue: 64, maxValue: 180, target: nil, action: nil)
     private let fileTagStore = FileTagStore()
     private let backForwardControl = NSSegmentedControl()
+    private let viewModeControl = NSSegmentedControl()
     private let breadcrumbStack = NSStackView()
     private let toolbarTitleField = NSTextField(labelWithString: "")
     private let detailsPane = DetailsPaneView()
@@ -170,6 +171,8 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
     private var toolbarTopConstraint: NSLayoutConstraint?
     private var detailsPaneWidthConstraint: NSLayoutConstraint?
     private weak var sidebarStack: NSStackView?
+    private weak var directViewModeContainer: NSView?
+    private weak var displayMenuContainer: NSView?
     private var detailsPaneVisible = false
 
     private struct SidebarLocation {
@@ -292,6 +295,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             detailsPane.bottomAnchor.constraint(equalTo: statusBar.topAnchor),
             detailsPaneWidthConstraint
         ])
+        updateToolbarResponsiveState()
     }
 
     func windowWillEnterFullScreen(_ notification: Notification) {
@@ -310,9 +314,20 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         setFullScreenToolbarGuard(false)
     }
 
+    func windowDidResize(_ notification: Notification) {
+        updateToolbarResponsiveState()
+    }
+
     private func setFullScreenToolbarGuard(_ enabled: Bool) {
         toolbarTopConstraint?.constant = enabled ? CGFloat(FinderToolbarMetrics.fullScreenTopGuard) : 0
         window?.contentView?.layoutSubtreeIfNeeded()
+    }
+
+    private func updateToolbarResponsiveState() {
+        let width = window?.frame.width ?? 0
+        let showDirectControl = width >= CGFloat(FinderToolbarMetrics.directViewModeMinimumWindowWidth)
+        directViewModeContainer?.isHidden = !showDirectControl
+        displayMenuContainer?.isHidden = showDirectControl
     }
 
     private func handleWindowKeyboardShortcut(_ shortcut: FinderKeyboardShortcut) -> Bool {
@@ -354,8 +369,181 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         return true
     }
 
+    @objc func performMainMenuItem(_ sender: NSMenuItem) {
+        guard
+            let rawAction = sender.representedObject as? String,
+            let action = SmartFinderMenuAction(rawValue: rawAction)
+        else {
+            return
+        }
+        performMainMenuAction(action)
+    }
+
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        guard
+            let rawAction = menuItem.representedObject as? String,
+            let action = SmartFinderMenuAction(rawValue: rawAction)
+        else {
+            return true
+        }
+
+        menuItem.state = menuItemState(for: action)
+        let selectionCount = gridController.selectedItemCount()
+        let hasSelection = selectionCount > 0
+        let hasCurrentFolder = gridController.currentFolder() != nil
+
+        switch action {
+        case .about, .quit:
+            return true
+        case .newFolder, .newTextFile, .newMarkdownFile:
+            return hasCurrentFolder
+        case .openSelection, .quickLook, .getInfo, .moveToTrash, .compress, .copyName, .copyPath:
+            return hasSelection
+        case .rename:
+            return selectionCount == 1
+        case .revealInFinder:
+            return hasSelection || hasCurrentFolder
+        case .goBack:
+            return navigationHistory.canGoBack
+        case .goForward:
+            return navigationHistory.canGoForward
+        case .goUp:
+            return !pathField.stringValue.isEmpty && pathField.stringValue != "/"
+        case .find,
+             .showIconView,
+             .showListView,
+             .showColumnView,
+             .smallIcons,
+             .mediumIcons,
+             .largeIcons,
+             .hiddenItems,
+             .fileExtensions,
+             .itemCheckboxes,
+             .detailsPane,
+             .sortName,
+             .sortType,
+             .sortSize,
+             .sortModified,
+             .sortAscending,
+             .sortDescending:
+            return true
+        case .copy, .paste, .selectAll:
+            return true
+        }
+    }
+
+    private func performMainMenuAction(_ action: SmartFinderMenuAction) {
+        switch action {
+        case .about:
+            NSApplication.shared.orderFrontStandardAboutPanel(nil)
+        case .quit:
+            NSApplication.shared.terminate(nil)
+        case .newFolder:
+            createFolder()
+        case .newTextFile:
+            createTextFileFromToolbar()
+        case .newMarkdownFile:
+            createMarkdownFileFromToolbar()
+        case .openSelection:
+            openSelectionFromToolbar()
+        case .quickLook:
+            quickLookSelectionFromToolbar()
+        case .getInfo:
+            getInfoFromToolbar()
+        case .rename:
+            renameSelectionFromToolbar()
+        case .moveToTrash:
+            moveSelectionToTrashFromToolbar()
+        case .compress:
+            compressSelectionFromToolbar()
+        case .revealInFinder:
+            revealInFinder()
+        case .copyName:
+            copyNameFromToolbar()
+        case .copyPath:
+            copyPathFromToolbar()
+        case .find:
+            window?.makeFirstResponder(searchField)
+            searchField.selectText(nil)
+        case .goBack:
+            goBack()
+        case .goForward:
+            goForward()
+        case .goUp:
+            goUp()
+        case .showIconView:
+            useIconView()
+        case .showListView:
+            useListView()
+        case .showColumnView:
+            useColumnView()
+        case .smallIcons:
+            useSmallIcons()
+        case .mediumIcons:
+            useMediumIcons()
+        case .largeIcons:
+            useLargeIcons()
+        case .hiddenItems:
+            toggleHiddenItems()
+        case .fileExtensions:
+            toggleFileExtensions()
+        case .itemCheckboxes:
+            toggleItemCheckboxes()
+        case .detailsPane:
+            toggleDetailsPane()
+        case .sortName:
+            sortByName()
+        case .sortType:
+            sortByType()
+        case .sortSize:
+            sortBySize()
+        case .sortModified:
+            sortByModified()
+        case .sortAscending:
+            sortAscending()
+        case .sortDescending:
+            sortDescending()
+        case .copy, .paste, .selectAll:
+            break
+        }
+    }
+
+    private func menuItemState(for action: SmartFinderMenuAction) -> NSControl.StateValue {
+        switch action {
+        case .showIconView:
+            return currentViewMode == .icon ? .on : .off
+        case .showListView:
+            return currentViewMode == .list ? .on : .off
+        case .showColumnView:
+            return currentViewMode == .column ? .on : .off
+        case .hiddenItems:
+            return gridController.includesHiddenItemsEnabled() ? .on : .off
+        case .fileExtensions:
+            return gridController.showsFileExtensionsEnabled() ? .on : .off
+        case .itemCheckboxes:
+            return gridController.showsSelectionCheckboxesEnabled() ? .on : .off
+        case .detailsPane:
+            return detailsPaneVisible ? .on : .off
+        case .sortName:
+            return currentSortMode == .name ? .on : .off
+        case .sortType:
+            return currentSortMode == .type ? .on : .off
+        case .sortSize:
+            return currentSortMode == .size ? .on : .off
+        case .sortModified:
+            return currentSortMode == .modified ? .on : .off
+        case .sortAscending:
+            return currentSortDirection == .ascending ? .on : .off
+        case .sortDescending:
+            return currentSortDirection == .descending ? .on : .off
+        default:
+            return .off
+        }
+    }
+
     private func makeToolbar() -> NSView {
         configureBackForwardControl()
+        configureViewModeControl()
 
         pathField.lineBreakMode = .byTruncatingMiddle
         pathField.font = FinderFonts.toolbarField
@@ -400,13 +588,24 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             backForwardControl,
             label: L10n.string("toolbar.navigation", fallback: "Back / Forward")
         )
+        let directViewModeControl = toolbarLabeledControl(
+            viewModeControl,
+            label: L10n.string("toolbar.display", fallback: "Display")
+        )
+        let displayMenuControl = toolbarLabeledButton(
+            displayButton,
+            label: L10n.string("toolbar.display", fallback: "Display")
+        )
+        self.directViewModeContainer = directViewModeControl
+        self.displayMenuContainer = displayMenuControl
 
         let stack = NSStackView(views: [
             navigationControl,
             toolbarLabeledButton(upButton, label: L10n.string("button.up", fallback: "Up")),
             toolbarTitleField,
             flexibleSpacer,
-            toolbarLabeledButton(displayButton, label: L10n.string("toolbar.display", fallback: "Display")),
+            directViewModeControl,
+            displayMenuControl,
             toolbarLabeledButton(groupButton, label: L10n.string("toolbar.group", fallback: "Group")),
             toolbarLabeledButton(shareButton, label: L10n.string("toolbar.share", fallback: "Share")),
             toolbarLabeledButton(tagButton, label: L10n.string("toolbar.tags", fallback: "Tags")),
@@ -436,6 +635,8 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             stack.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             stack.bottomAnchor.constraint(equalTo: container.bottomAnchor)
         ])
+        updateViewModeControlSelection()
+        updateToolbarResponsiveState()
         updateSelectionToolbarButtons()
         return container
     }
@@ -483,6 +684,35 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         backForwardControl.setWidth(CGFloat(FinderToolbarMetrics.navigationSegmentWidth), forSegment: 1)
         backForwardControl.widthAnchor.constraint(equalToConstant: CGFloat(FinderToolbarMetrics.navigationSegmentWidth * 2)).isActive = true
         backForwardControl.heightAnchor.constraint(equalToConstant: CGFloat(FinderToolbarMetrics.buttonHeight)).isActive = true
+    }
+
+    private func configureViewModeControl() {
+        viewModeControl.segmentCount = 3
+        viewModeControl.trackingMode = .selectOne
+        viewModeControl.segmentStyle = .texturedRounded
+        viewModeControl.target = self
+        viewModeControl.action = #selector(viewModeSegmentChanged(_:))
+        viewModeControl.toolTip = L10n.string("toolbar.display", fallback: "Display")
+
+        let titles = [
+            L10n.string("menu.display.iconView", fallback: "Icon View"),
+            L10n.string("menu.display.listView", fallback: "List View"),
+            L10n.string("menu.display.columnView", fallback: "Column View")
+        ]
+        let symbols = ["square.grid.2x2", "list.bullet", "rectangle.split.3x1"]
+
+        for index in 0..<3 {
+            if let image = toolbarSymbol(symbols[index], description: titles[index]) {
+                viewModeControl.setImage(image, forSegment: index)
+            } else {
+                viewModeControl.setLabel(titles[index], forSegment: index)
+            }
+            viewModeControl.setToolTip(titles[index], forSegment: index)
+            viewModeControl.setWidth(CGFloat(FinderToolbarMetrics.viewModeSegmentWidth / 3), forSegment: index)
+        }
+
+        viewModeControl.widthAnchor.constraint(equalToConstant: CGFloat(FinderToolbarMetrics.viewModeSegmentWidth)).isActive = true
+        viewModeControl.heightAnchor.constraint(equalToConstant: CGFloat(FinderToolbarMetrics.buttonHeight)).isActive = true
     }
 
     private func toolbarIconButton(symbolName: String, fallbackTitle: String, action: Selector) -> NSButton {
@@ -1087,6 +1317,19 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         setViewMode(.column)
     }
 
+    @objc private func viewModeSegmentChanged(_ sender: NSSegmentedControl) {
+        switch sender.selectedSegment {
+        case 0:
+            setViewMode(.icon)
+        case 1:
+            setViewMode(.list)
+        case 2:
+            setViewMode(.column)
+        default:
+            break
+        }
+    }
+
     private func setIconSizePreset(_ size: Double) {
         iconSizeSlider.doubleValue = size
         gridController.setIconSize(CGFloat(size))
@@ -1094,7 +1337,19 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
 
     private func setViewMode(_ mode: FileViewMode) {
         currentViewMode = mode
+        updateViewModeControlSelection()
         gridController.setViewMode(mode)
+    }
+
+    private func updateViewModeControlSelection() {
+        switch currentViewMode {
+        case .icon:
+            viewModeControl.selectedSegment = 0
+        case .list:
+            viewModeControl.selectedSegment = 1
+        case .column:
+            viewModeControl.selectedSegment = 2
+        }
     }
 
     @objc private func toggleHiddenItems() {

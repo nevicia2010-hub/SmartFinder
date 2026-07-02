@@ -3,6 +3,17 @@
 "button.up" = "상위";
 "search.placeholder" = "현재 폴더 검색";
 
+"menu.app" = "SmartFinder";
+"menu.file" = "파일";
+"menu.edit" = "편집";
+"menu.view" = "보기";
+"menu.go" = "이동";
+"menu.sort" = "정렬";
+"menu.about" = "SmartFinder 정보";
+"menu.quit" = "SmartFinder 종료";
+"menu.selectAll" = "모두 선택";
+"menu.find" = "찾기";
+
 "sidebar.home" = "홈";
 "sidebar.favorites" = "즐겨찾기";
 "sidebar.volumes" = "볼륨";

@@ -3,6 +3,17 @@
 "button.up" = "上级";
 "search.placeholder" = "搜索当前文件夹";
 
+"menu.app" = "SmartFinder";
+"menu.file" = "文件";
+"menu.edit" = "编辑";
+"menu.view" = "显示";
+"menu.go" = "前往";
+"menu.sort" = "排序";
+"menu.about" = "关于 SmartFinder";
+"menu.quit" = "退出 SmartFinder";
+"menu.selectAll" = "全选";
+"menu.find" = "查找";
+
 "sidebar.home" = "主文件夹";
 "sidebar.favorites" = "个人收藏";
 "sidebar.volumes" = "磁盘";

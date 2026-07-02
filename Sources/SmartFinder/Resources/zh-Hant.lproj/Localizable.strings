@@ -3,6 +3,17 @@
 "button.up" = "上層";
 "search.placeholder" = "搜尋目前資料夾";
 
+"menu.app" = "SmartFinder";
+"menu.file" = "檔案";
+"menu.edit" = "編輯";
+"menu.view" = "顯示";
+"menu.go" = "前往";
+"menu.sort" = "排序";
+"menu.about" = "關於 SmartFinder";
+"menu.quit" = "結束 SmartFinder";
+"menu.selectAll" = "全選";
+"menu.find" = "尋找";
+
 "sidebar.home" = "個人資料夾";
 "sidebar.favorites" = "個人收藏";
 "sidebar.volumes" = "磁碟";

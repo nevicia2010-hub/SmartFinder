@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         let controller = MainWindowController(startURL: Self.startURL())
         mainWindowController = controller
+        MainMenuBuilder.install(target: controller)
         controller.showWindow(nil)
         NSApplication.shared.activate(ignoringOtherApps: true)
     }

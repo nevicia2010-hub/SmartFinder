@@ -59,6 +59,18 @@ final class SmartCollectionView: NSCollectionView {
     override func rightMouseDown(with event: NSEvent) {
         keyDelegate?.smartCollectionViewDidRightClick(event: event)
     }
+
+    @objc func copy(_ sender: Any?) {
+        keyDelegate?.smartCollectionViewDidPressCopy()
+    }
+
+    @objc func paste(_ sender: Any?) {
+        keyDelegate?.smartCollectionViewDidPressPaste()
+    }
+
+    @objc override func selectAll(_ sender: Any?) {
+        keyDelegate?.smartCollectionViewDidPressCommandA()
+    }
 }
 
 final class SmartTableView: NSTableView {
@@ -85,6 +97,18 @@ final class SmartTableView: NSTableView {
 
     override func rightMouseDown(with event: NSEvent) {
         keyDelegate?.smartCollectionViewDidRightClick(event: event)
+    }
+
+    @objc func copy(_ sender: Any?) {
+        keyDelegate?.smartCollectionViewDidPressCopy()
+    }
+
+    @objc func paste(_ sender: Any?) {
+        keyDelegate?.smartCollectionViewDidPressPaste()
+    }
+
+    @objc override func selectAll(_ sender: Any?) {
+        keyDelegate?.smartCollectionViewDidPressCommandA()
     }
 }
 

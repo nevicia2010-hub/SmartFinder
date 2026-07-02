@@ -3,6 +3,17 @@
 "button.up" = "上へ";
 "search.placeholder" = "現在のフォルダを検索";
 
+"menu.app" = "SmartFinder";
+"menu.file" = "ファイル";
+"menu.edit" = "編集";
+"menu.view" = "表示";
+"menu.go" = "移動";
+"menu.sort" = "並べ替え";
+"menu.about" = "SmartFinderについて";
+"menu.quit" = "SmartFinderを終了";
+"menu.selectAll" = "すべてを選択";
+"menu.find" = "検索";
+
 "sidebar.home" = "ホーム";
 "sidebar.favorites" = "よく使う項目";
 "sidebar.volumes" = "ボリューム";

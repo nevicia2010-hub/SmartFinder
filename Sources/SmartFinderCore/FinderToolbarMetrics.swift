@@ -7,6 +7,8 @@ public enum FinderToolbarMetrics {
     public static let labeledButtonHeight: Double = 54
     public static let symbolSize: Double = 24
     public static let navigationSegmentWidth: Double = 56
+    public static let viewModeSegmentWidth: Double = 170
+    public static let directViewModeMinimumWindowWidth: Double = 1260
     public static let fullScreenTopGuard: Double = 30
     public static let sidebarWidth: Double = 224
     public static let sidebarContentWidth: Double = 200

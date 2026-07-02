@@ -3,6 +3,17 @@
 "button.up" = "Subir";
 "search.placeholder" = "Pesquisar na pasta atual";
 
+"menu.app" = "SmartFinder";
+"menu.file" = "Arquivo";
+"menu.edit" = "Editar";
+"menu.view" = "Visualizar";
+"menu.go" = "Ir";
+"menu.sort" = "Ordenar";
+"menu.about" = "Sobre o SmartFinder";
+"menu.quit" = "Sair do SmartFinder";
+"menu.selectAll" = "Selecionar tudo";
+"menu.find" = "Buscar";
+
 "sidebar.home" = "Início";
 "sidebar.favorites" = "Favoritos";
 "sidebar.volumes" = "Volumes";

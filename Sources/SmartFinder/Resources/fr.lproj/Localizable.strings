@@ -3,6 +3,17 @@
 "button.up" = "Dossier parent";
 "search.placeholder" = "Rechercher dans le dossier actuel";
 
+"menu.app" = "SmartFinder";
+"menu.file" = "Fichier";
+"menu.edit" = "Édition";
+"menu.view" = "Présentation";
+"menu.go" = "Aller";
+"menu.sort" = "Trier";
+"menu.about" = "À propos de SmartFinder";
+"menu.quit" = "Quitter SmartFinder";
+"menu.selectAll" = "Tout sélectionner";
+"menu.find" = "Rechercher";
+
 "sidebar.home" = "Accueil";
 "sidebar.favorites" = "Favoris";
 "sidebar.volumes" = "Volumes";

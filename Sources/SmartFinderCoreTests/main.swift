@@ -232,6 +232,8 @@ expect(FinderToolbarMetrics.keepsDisabledNavigationArrowsVisible, "disabled back
 expect(FinderToolbarMetrics.showsToolbarButtonLabels, "toolbar operation buttons should show text labels under icons")
 expect(FinderToolbarMetrics.labeledButtonHeight >= 52, "labeled toolbar buttons should be tall enough for icon and text")
 expect(FinderToolbarMetrics.usesPreferredTextStyles, "interface text should use system preferred text styles where AppKit allows")
+expect(FinderToolbarMetrics.viewModeSegmentWidth >= 150, "direct view mode control should have enough width for Finder-like segments")
+expect(FinderToolbarMetrics.directViewModeMinimumWindowWidth > 0, "toolbar should define when direct view mode controls are visible")
 
 expect(
     FinderKeyboardShortcut.resolve(keyCode: 33, charactersIgnoringModifiers: "[", modifiers: [.command]) == .goBack,
@@ -268,6 +270,30 @@ expect(
 expect(
     FinderKeyboardShortcut.resolve(keyCode: 8, charactersIgnoringModifiers: "c", modifiers: [.command, .option]) == .copyPath,
     "Option-Command-C should map to copying selected paths"
+)
+let menuSpecs = SmartFinderMenuBarSpecification.menus
+expect(
+    menuSpecs.map(\.titleKey).contains("menu.view"),
+    "menu bar should include a top-level View menu"
+)
+expect(
+    menuSpecs.flatMap(\.items).contains {
+        $0.action == .showColumnView &&
+        $0.titleKey == "menu.display.columnView" &&
+        $0.keyEquivalent == "3" &&
+        $0.modifiers == [.command]
+    },
+    "menu bar should expose Column View with Command-3"
+)
+expect(
+    menuSpecs.flatMap(\.items).contains { $0.action == .goBack } &&
+    menuSpecs.flatMap(\.items).contains { $0.action == .goForward } &&
+    menuSpecs.flatMap(\.items).contains { $0.action == .goUp },
+    "menu bar should expose common navigation actions"
+)
+expect(
+    menuSpecs.flatMap(\.items).contains { $0.action == .copyPath && $0.modifiers == [.command, .option] },
+    "menu bar should expose Copy Path for users who do not know the shortcut"
 )
 
 expect(SmartFinderCoreBootstrap.isAvailable, "core module should load")
