@@ -38,6 +38,23 @@ swift run SmartFinder --path "$HOME/Downloads"
 
 If `--path` is omitted, SmartFinder opens the user's home folder.
 
+## Package as a macOS App
+
+```bash
+./scripts/package.sh
+```
+
+The script creates:
+
+- `.build/package/SmartFinder.app`
+- `dist/SmartFinder-0.1.0.dmg`
+
+The app is ad-hoc signed for local use. It is not Apple Developer ID signed or notarized, so macOS may show the standard warning the first time it is opened on another machine.
+
+## Install from DMG
+
+Open `dist/SmartFinder-0.1.0.dmg`, then drag `SmartFinder.app` to `Applications`.
+
 ## Current Scope
 
 This is not a system Finder replacement. It does not replace the Desktop, file picker, Spotlight, iCloud Drive, or "Show in Finder" behavior. It is a separate native window for folders where Finder's thumbnail behavior is inconvenient.
