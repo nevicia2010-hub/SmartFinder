@@ -140,6 +140,7 @@ expect(FinderToolbarMetrics.height >= 60, "toolbar should be tall enough to visu
 expect(FinderToolbarMetrics.buttonWidth >= 44, "toolbar buttons should use Finder-like hit width")
 expect(FinderToolbarMetrics.buttonHeight >= 38, "toolbar buttons should use Finder-like hit height")
 expect(FinderToolbarMetrics.symbolSize >= 22, "toolbar symbols should not render as tiny icons")
+expect(FinderToolbarMetrics.fullScreenTopGuard >= 28, "full-screen top guard should keep toolbar below the revealed menu bar")
 
 expect(SmartFinderCoreBootstrap.isAvailable, "core module should load")
 expect(category("/tmp/photo.jpg") == .image, "jpg should be image")

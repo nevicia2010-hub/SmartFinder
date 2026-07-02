@@ -1,7 +1,7 @@
 import AppKit
 import SmartFinderCore
 
-final class MainWindowController: NSWindowController, NSSearchFieldDelegate {
+final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSWindowDelegate {
     private let gridController = FileGridViewController()
     private let mountedVolumeProvider = MountedVolumeProvider()
     private let pathField = NSTextField(string: "")
@@ -23,6 +23,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate {
     private var currentSortMode: FileSortMode = .name
     private var currentViewMode: FileViewMode = .icon
     private var activeSharingPicker: NSSharingServicePicker?
+    private var toolbarTopConstraint: NSLayoutConstraint?
     private weak var sidebarStack: NSStackView?
 
     private struct SidebarLocation {
@@ -41,6 +42,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate {
         )
         window.title = "SmartFinder"
         super.init(window: window)
+        window.delegate = self
 
         setupContent()
         navigate(to: startURL, recordHistory: true)
@@ -86,8 +88,11 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate {
         body.addSubview(sidebar)
         body.addSubview(gridController.view)
 
+        let toolbarTopConstraint = toolbar.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor)
+        self.toolbarTopConstraint = toolbarTopConstraint
+
         NSLayoutConstraint.activate([
-            toolbar.topAnchor.constraint(equalTo: contentView.topAnchor),
+            toolbarTopConstraint,
             toolbar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             toolbar.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             toolbar.heightAnchor.constraint(equalToConstant: CGFloat(FinderToolbarMetrics.height)),
@@ -117,6 +122,27 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate {
             gridController.view.trailingAnchor.constraint(equalTo: body.trailingAnchor),
             gridController.view.bottomAnchor.constraint(equalTo: body.bottomAnchor)
         ])
+    }
+
+    func windowWillEnterFullScreen(_ notification: Notification) {
+        setFullScreenToolbarGuard(true)
+    }
+
+    func windowDidEnterFullScreen(_ notification: Notification) {
+        setFullScreenToolbarGuard(true)
+    }
+
+    func windowWillExitFullScreen(_ notification: Notification) {
+        setFullScreenToolbarGuard(false)
+    }
+
+    func windowDidExitFullScreen(_ notification: Notification) {
+        setFullScreenToolbarGuard(false)
+    }
+
+    private func setFullScreenToolbarGuard(_ enabled: Bool) {
+        toolbarTopConstraint?.constant = enabled ? CGFloat(FinderToolbarMetrics.fullScreenTopGuard) : 0
+        window?.contentView?.layoutSubtreeIfNeeded()
     }
 
     private func makeToolbar() -> NSView {
