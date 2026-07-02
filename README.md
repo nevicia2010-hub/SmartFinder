@@ -14,6 +14,7 @@ The first version opens a folder in a Finder-like icon grid:
 - The toolbar can sort the current folder by name, type, size, or modified date.
 - Back and forward are integrated as a Finder-style segmented navigation control, with a separate Up button.
 - The back/forward navigation control uses a larger SmartFinder-sized hit area without copying Finder pixel-for-pixel.
+- Back and forward arrows remain visible in gray when unavailable, then brighten when that direction becomes available.
 - Finder-like toolbar menus provide display presets, grouping/sorting, system sharing, tags, and common file actions.
 - The window uses a Finder-like full-height sidebar, transparent titlebar, compact breadcrumb row, and neutral toolbar symbols.
 - Toolbar symbols now follow Finder-like availability states: enabled controls are bright, while unavailable controls are dimmed.
@@ -65,13 +66,13 @@ If `--path` is omitted, SmartFinder opens the user's home folder.
 The script creates:
 
 - `.build/package/SmartFinder.app`
-- `dist/SmartFinder-0.5.2.dmg`
+- `dist/SmartFinder-0.5.3.dmg`
 
 The app is ad-hoc signed for local use. It is not Apple Developer ID signed or notarized, so macOS may show the standard warning the first time it is opened on another machine.
 
 ## Install from DMG
 
-Open `dist/SmartFinder-0.5.2.dmg`, then drag `SmartFinder.app` to `Applications`.
+Open `dist/SmartFinder-0.5.3.dmg`, then drag `SmartFinder.app` to `Applications`.
 
 ## RAW Photo Files
 

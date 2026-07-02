@@ -146,6 +146,7 @@ expect(FinderToolbarMetrics.sidebarWidth >= 220, "sidebar should be close to Fin
 expect(FinderToolbarMetrics.breadcrumbHeight <= 30, "breadcrumb bar should stay visually compact")
 expect(!FinderToolbarMetrics.usesAccentToolbarSymbols, "toolbar symbols should use neutral Finder-like tint instead of accent blue")
 expect(FinderToolbarMetrics.usesStatefulToolbarSymbolTint, "toolbar symbols should use bright enabled tint and dim disabled tint")
+expect(FinderToolbarMetrics.keepsDisabledNavigationArrowsVisible, "disabled back and forward arrows should remain visible in gray")
 expect(FinderToolbarMetrics.usesPreferredTextStyles, "interface text should use system preferred text styles where AppKit allows")
 
 expect(SmartFinderCoreBootstrap.isAvailable, "core module should load")

@@ -618,8 +618,8 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         let canGoForward = navigationHistory.canGoForward
         let canGoUp = !pathField.stringValue.isEmpty && pathField.stringValue != "/"
 
-        backForwardControl.setEnabled(canGoBack, forSegment: 0)
-        backForwardControl.setEnabled(canGoForward, forSegment: 1)
+        backForwardControl.setEnabled(true, forSegment: 0)
+        backForwardControl.setEnabled(true, forSegment: 1)
         backForwardControl.setImage(
             toolbarSymbol("chevron.left", description: L10n.string("button.back", fallback: "Back"), enabled: canGoBack),
             forSegment: 0
