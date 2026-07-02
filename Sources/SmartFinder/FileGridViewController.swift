@@ -396,9 +396,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     }
 
     func tableViewSelectionDidChange(_ notification: Notification) {
-        if showsSelectionCheckboxes {
-            tableView.reloadData()
-        }
+        updateVisibleTableCheckboxStates()
         updateStatus()
     }
 
@@ -511,12 +509,10 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     }
 
     func collectionView(_ collectionView: NSCollectionView, didSelectItemsAt indexPaths: Set<IndexPath>) {
-        collectionView.reloadItems(at: indexPaths)
         updateStatus()
     }
 
     func collectionView(_ collectionView: NSCollectionView, didDeselectItemsAt indexPaths: Set<IndexPath>) {
-        collectionView.reloadItems(at: indexPaths)
         updateStatus()
     }
 
@@ -986,6 +982,25 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
 
     private func updateTableCheckboxColumnVisibility() {
         tableView.tableColumn(withIdentifier: NSUserInterfaceItemIdentifier("selectionCheckbox"))?.isHidden = !showsSelectionCheckboxes
+    }
+
+    private func updateVisibleTableCheckboxStates() {
+        guard showsSelectionCheckboxes,
+              let checkboxColumnIndex = tableView.tableColumns.firstIndex(where: { $0.identifier.rawValue == "selectionCheckbox" }) else {
+            return
+        }
+
+        let visibleRows = tableView.rows(in: tableView.visibleRect)
+        guard visibleRows.length > 0 else {
+            return
+        }
+
+        for row in visibleRows.location..<(visibleRows.location + visibleRows.length) {
+            guard let button = tableView.view(atColumn: checkboxColumnIndex, row: row, makeIfNecessary: false) as? NSButton else {
+                continue
+            }
+            button.state = tableView.selectedRowIndexes.contains(row) ? .on : .off
+        }
     }
 
     private func contextMenu() -> NSMenu {

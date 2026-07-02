@@ -71,13 +71,13 @@ If `--path` is omitted, SmartFinder opens the user's home folder.
 The script creates:
 
 - `.build/package/SmartFinder.app`
-- `dist/SmartFinder-0.6.0.dmg`
+- `dist/SmartFinder-0.6.1.dmg`
 
 The app is ad-hoc signed for local use. It is not Apple Developer ID signed or notarized, so macOS may show the standard warning the first time it is opened on another machine.
 
 ## Install from DMG
 
-Open `dist/SmartFinder-0.6.0.dmg`, then drag `SmartFinder.app` to `Applications`.
+Open `dist/SmartFinder-0.6.1.dmg`, then drag `SmartFinder.app` to `Applications`.
 
 ## RAW Photo Files
 
