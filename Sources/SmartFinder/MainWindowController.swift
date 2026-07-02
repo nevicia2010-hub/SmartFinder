@@ -1,6 +1,60 @@
 import AppKit
 import SmartFinderCore
 
+private final class FinderToolbarButton: NSButton {
+    private let symbolName: String
+    private let fallbackTitle: String
+
+    init(symbolName: String, fallbackTitle: String, target: AnyObject?, action: Selector) {
+        self.symbolName = symbolName
+        self.fallbackTitle = fallbackTitle
+        super.init(frame: .zero)
+
+        title = ""
+        self.target = target
+        self.action = action
+        toolTip = fallbackTitle
+        bezelStyle = .texturedRounded
+        imagePosition = .imageOnly
+        imageScaling = .scaleProportionallyUpOrDown
+        refreshImage()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override var isEnabled: Bool {
+        didSet {
+            refreshImage()
+        }
+    }
+
+    private func refreshImage() {
+        if let image = Self.symbol(symbolName, description: fallbackTitle, enabled: isEnabled) {
+            self.image = image
+            title = ""
+            imagePosition = .imageOnly
+        } else {
+            image = nil
+            title = fallbackTitle
+            imagePosition = .noImage
+        }
+    }
+
+    static func symbol(_ symbolName: String, description: String, enabled: Bool) -> NSImage? {
+        let color: NSColor = enabled ? .labelColor : .disabledControlTextColor
+        let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: description)?
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(hierarchicalColor: color))
+        image?.size = NSSize(
+            width: CGFloat(FinderToolbarMetrics.symbolSize),
+            height: CGFloat(FinderToolbarMetrics.symbolSize)
+        )
+        image?.isTemplate = false
+        return image
+    }
+}
+
 final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSWindowDelegate {
     private let gridController = FileGridViewController()
     private let mountedVolumeProvider = MountedVolumeProvider()
@@ -12,6 +66,16 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
     private let backForwardControl = NSSegmentedControl()
     private let breadcrumbStack = NSStackView()
     private let toolbarTitleField = NSTextField(labelWithString: "")
+    private lazy var shareButton = toolbarIconButton(
+        symbolName: "square.and.arrow.up",
+        fallbackTitle: L10n.string("toolbar.share", fallback: "Share"),
+        action: #selector(shareSelection(_:))
+    )
+    private lazy var tagButton = toolbarIconButton(
+        symbolName: "tag",
+        fallbackTitle: L10n.string("toolbar.tags", fallback: "Tags"),
+        action: #selector(showTagMenu(_:))
+    )
     private lazy var upButton = toolbarIconButton(
         symbolName: "chevron.up",
         fallbackTitle: L10n.string("button.up", fallback: "Up"),
@@ -67,6 +131,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         }
         gridController.onStatusChange = { [weak self] status in
             self?.statusField.stringValue = status
+            self?.updateSelectionToolbarButtons()
         }
 
         let contentView = NSView()
@@ -179,16 +244,6 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             fallbackTitle: L10n.string("toolbar.group", fallback: "Group"),
             action: #selector(showGroupMenu(_:))
         )
-        let shareButton = toolbarIconButton(
-            symbolName: "square.and.arrow.up",
-            fallbackTitle: L10n.string("toolbar.share", fallback: "Share"),
-            action: #selector(shareSelection(_:))
-        )
-        let tagButton = toolbarIconButton(
-            symbolName: "tag",
-            fallbackTitle: L10n.string("toolbar.tags", fallback: "Tags"),
-            action: #selector(showTagMenu(_:))
-        )
         let actionButton = toolbarIconButton(
             symbolName: "ellipsis.circle",
             fallbackTitle: L10n.string("toolbar.actions", fallback: "Actions"),
@@ -238,6 +293,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             stack.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             stack.bottomAnchor.constraint(equalTo: container.bottomAnchor)
         ])
+        updateSelectionToolbarButtons()
         return container
     }
 
@@ -273,11 +329,11 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         backForwardControl.setToolTip(L10n.string("button.back", fallback: "Back"), forSegment: 0)
         backForwardControl.setToolTip(L10n.string("button.forward", fallback: "Forward"), forSegment: 1)
         backForwardControl.setImage(
-            toolbarSymbol("chevron.left", description: L10n.string("button.back", fallback: "Back")),
+            toolbarSymbol("chevron.left", description: L10n.string("button.back", fallback: "Back"), enabled: false),
             forSegment: 0
         )
         backForwardControl.setImage(
-            toolbarSymbol("chevron.right", description: L10n.string("button.forward", fallback: "Forward")),
+            toolbarSymbol("chevron.right", description: L10n.string("button.forward", fallback: "Forward"), enabled: false),
             forSegment: 1
         )
         backForwardControl.setWidth(CGFloat(FinderToolbarMetrics.navigationSegmentWidth), forSegment: 0)
@@ -287,31 +343,14 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
     }
 
     private func toolbarIconButton(symbolName: String, fallbackTitle: String, action: Selector) -> NSButton {
-        let button = NSButton(title: "", target: self, action: action)
-        button.toolTip = fallbackTitle
-        button.bezelStyle = .texturedRounded
-        button.imagePosition = .imageOnly
-        button.contentTintColor = .secondaryLabelColor
-        button.image = toolbarSymbol(symbolName, description: fallbackTitle)
-        button.imageScaling = .scaleProportionallyUpOrDown
-        if button.image == nil {
-            button.title = fallbackTitle
-            button.imagePosition = .noImage
-        }
+        let button = FinderToolbarButton(symbolName: symbolName, fallbackTitle: fallbackTitle, target: self, action: action)
         button.widthAnchor.constraint(greaterThanOrEqualToConstant: CGFloat(FinderToolbarMetrics.buttonWidth)).isActive = true
         button.heightAnchor.constraint(equalToConstant: CGFloat(FinderToolbarMetrics.buttonHeight)).isActive = true
         return button
     }
 
-    private func toolbarSymbol(_ symbolName: String, description: String) -> NSImage? {
-        let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: description)?
-            .withSymbolConfiguration(NSImage.SymbolConfiguration(hierarchicalColor: .secondaryLabelColor))
-        image?.size = NSSize(
-            width: CGFloat(FinderToolbarMetrics.symbolSize),
-            height: CGFloat(FinderToolbarMetrics.symbolSize)
-        )
-        image?.isTemplate = false
-        return image
+    private func toolbarSymbol(_ symbolName: String, description: String, enabled: Bool = true) -> NSImage? {
+        FinderToolbarButton.symbol(symbolName, description: description, enabled: enabled)
     }
 
     private func popUp(_ menu: NSMenu, from sender: NSButton) {
@@ -575,9 +614,27 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
     }
 
     private func updateNavigationButtons() {
-        backForwardControl.setEnabled(navigationHistory.canGoBack, forSegment: 0)
-        backForwardControl.setEnabled(navigationHistory.canGoForward, forSegment: 1)
-        upButton.isEnabled = !pathField.stringValue.isEmpty && pathField.stringValue != "/"
+        let canGoBack = navigationHistory.canGoBack
+        let canGoForward = navigationHistory.canGoForward
+        let canGoUp = !pathField.stringValue.isEmpty && pathField.stringValue != "/"
+
+        backForwardControl.setEnabled(canGoBack, forSegment: 0)
+        backForwardControl.setEnabled(canGoForward, forSegment: 1)
+        backForwardControl.setImage(
+            toolbarSymbol("chevron.left", description: L10n.string("button.back", fallback: "Back"), enabled: canGoBack),
+            forSegment: 0
+        )
+        backForwardControl.setImage(
+            toolbarSymbol("chevron.right", description: L10n.string("button.forward", fallback: "Forward"), enabled: canGoForward),
+            forSegment: 1
+        )
+        upButton.isEnabled = canGoUp
+    }
+
+    private func updateSelectionToolbarButtons() {
+        let hasSelection = gridController.selectedItemCount() > 0
+        shareButton.isEnabled = hasSelection
+        tagButton.isEnabled = hasSelection
     }
 
     func controlTextDidChange(_ obj: Notification) {

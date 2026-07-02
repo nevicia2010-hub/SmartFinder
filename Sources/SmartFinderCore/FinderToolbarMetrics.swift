@@ -12,5 +12,6 @@ public enum FinderToolbarMetrics {
     public static let sidebarTopInset: Double = 76
     public static let breadcrumbHeight: Double = 28
     public static let usesAccentToolbarSymbols = false
+    public static let usesStatefulToolbarSymbolTint = true
     public static let usesPreferredTextStyles = true
 }
