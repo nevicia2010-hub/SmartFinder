@@ -13,6 +13,13 @@ public enum FileClassifier {
         "jpg", "jpeg", "png", "heic", "webp", "gif", "tiff", "tif", "bmp"
     ]
 
+    private static let rawPhotoExtensions: Set<String> = [
+        "3fr", "ari", "arw", "bay", "cap", "cr2", "cr3", "crw", "dcr",
+        "dng", "eip", "erf", "fff", "iiq", "kdc", "mdc", "mef", "mos",
+        "mrw", "nef", "nrw", "orf", "ori", "pef", "raf", "raw", "rwl",
+        "rw2", "sr2", "srf", "srw", "x3f"
+    ]
+
     private static let documentExtensions: Set<String> = [
         "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "pages", "numbers", "key"
     ]
@@ -23,7 +30,7 @@ public enum FileClassifier {
         }
 
         let ext = url.pathExtension.lowercased()
-        if imageExtensions.contains(ext) {
+        if imageExtensions.contains(ext) || rawPhotoExtensions.contains(ext) {
             return .image
         }
         if documentExtensions.contains(ext) {

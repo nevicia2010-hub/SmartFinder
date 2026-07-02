@@ -4,7 +4,7 @@ SmartFinder is a small macOS Finder Companion focused on predictable icon-view b
 
 The first version opens a folder in a Finder-like icon grid:
 
-- Image files show real thumbnails.
+- Image and supported RAW photo files show real thumbnails.
 - PDF and office documents show system type icons instead of generated content thumbnails.
 - Folders show folder icons.
 - Unknown files show system type icons.
@@ -48,13 +48,19 @@ If `--path` is omitted, SmartFinder opens the user's home folder.
 The script creates:
 
 - `.build/package/SmartFinder.app`
-- `dist/SmartFinder-0.1.1.dmg`
+- `dist/SmartFinder-0.1.2.dmg`
 
 The app is ad-hoc signed for local use. It is not Apple Developer ID signed or notarized, so macOS may show the standard warning the first time it is opened on another machine.
 
 ## Install from DMG
 
-Open `dist/SmartFinder-0.1.1.dmg`, then drag `SmartFinder.app` to `Applications`.
+Open `dist/SmartFinder-0.1.2.dmg`, then drag `SmartFinder.app` to `Applications`.
+
+## RAW Photo Files
+
+SmartFinder treats common RAW photo extensions as thumbnail-eligible image files, including DNG, CR2, CR3, NEF, ARW, RAF, RW2, ORF, PEF, SRW, X3F, MEF, KDC, and related camera formats.
+
+Thumbnail generation still depends on macOS Quick Look and the RAW codecs available on the current system. If macOS cannot decode a specific RAW file, SmartFinder falls back to the normal system type icon.
 
 ## Localizations
 
