@@ -10,6 +10,8 @@
     <string>SmartFinder</string>
     <key>CFBundleIdentifier</key>
     <string>__BUNDLE_IDENTIFIER__</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleAllowMixedLocalizations</key>
     <true/>
     <key>CFBundleInfoDictionaryVersion</key>

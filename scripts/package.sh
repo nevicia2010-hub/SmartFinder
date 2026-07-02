@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_NAME="SmartFinder"
-VERSION="${VERSION:-0.1.2}"
+VERSION="${VERSION:-0.1.3}"
 BUNDLE_IDENTIFIER="${BUNDLE_IDENTIFIER:-local.smartfinder.app}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -33,6 +33,12 @@ sed \
     "${PROJECT_ROOT}/Packaging/Info.plist" > "${APP_PATH}/Contents/Info.plist"
 
 plutil -lint "${APP_PATH}/Contents/Info.plist"
+
+if [[ ! -f "${PROJECT_ROOT}/Packaging/AppIcon.icns" ]]; then
+    echo "Packaging/AppIcon.icns is missing. Run scripts/generate_app_icon.swift first." >&2
+    exit 1
+fi
+cp "${PROJECT_ROOT}/Packaging/AppIcon.icns" "${APP_PATH}/Contents/Resources/AppIcon.icns"
 
 if [[ -d "${PROJECT_ROOT}/Sources/SmartFinder/Resources" ]]; then
     cp -R "${PROJECT_ROOT}/Sources/SmartFinder/Resources/." "${APP_PATH}/Contents/Resources/"
