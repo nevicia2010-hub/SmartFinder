@@ -1,0 +1,16 @@
+"button.back" = "Indietro";
+"button.forward" = "Avanti";
+"button.up" = "Su";
+"search.placeholder" = "Cerca nella cartella attuale";
+
+"sidebar.home" = "Home";
+"sidebar.desktop" = "Scrivania";
+"sidebar.downloads" = "Download";
+"sidebar.documents" = "Documenti";
+"sidebar.pictures" = "Immagini";
+
+"status.loading" = "Caricamento";
+"status.items.one" = "%d elemento";
+"status.items.other" = "%d elementi";
+"status.selected" = ", %d selezionati";
+"error.cannotReadFolder" = "Impossibile leggere la cartella: %@";

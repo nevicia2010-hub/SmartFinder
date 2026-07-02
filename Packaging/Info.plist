@@ -22,6 +22,14 @@
     <array>
         <string>en</string>
         <string>zh-Hans</string>
+        <string>zh-Hant</string>
+        <string>ja</string>
+        <string>ko</string>
+        <string>de</string>
+        <string>fr</string>
+        <string>es</string>
+        <string>it</string>
+        <string>pt</string>
     </array>
     <key>CFBundleShortVersionString</key>
     <string>__VERSION__</string>

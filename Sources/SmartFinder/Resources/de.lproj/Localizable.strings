@@ -1,0 +1,16 @@
+"button.back" = "Zurück";
+"button.forward" = "Vorwärts";
+"button.up" = "Aufwärts";
+"search.placeholder" = "Aktuellen Ordner suchen";
+
+"sidebar.home" = "Start";
+"sidebar.desktop" = "Schreibtisch";
+"sidebar.downloads" = "Downloads";
+"sidebar.documents" = "Dokumente";
+"sidebar.pictures" = "Bilder";
+
+"status.loading" = "Wird geladen";
+"status.items.one" = "%d Objekt";
+"status.items.other" = "%d Objekte";
+"status.selected" = ", %d ausgewählt";
+"error.cannotReadFolder" = "Ordner kann nicht gelesen werden: %@";

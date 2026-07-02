@@ -1,0 +1,16 @@
+"button.back" = "Atrás";
+"button.forward" = "Adelante";
+"button.up" = "Subir";
+"search.placeholder" = "Buscar en la carpeta actual";
+
+"sidebar.home" = "Inicio";
+"sidebar.desktop" = "Escritorio";
+"sidebar.downloads" = "Descargas";
+"sidebar.documents" = "Documentos";
+"sidebar.pictures" = "Imágenes";
+
+"status.loading" = "Cargando";
+"status.items.one" = "%d elemento";
+"status.items.other" = "%d elementos";
+"status.selected" = ", %d seleccionado(s)";
+"error.cannotReadFolder" = "No se puede leer la carpeta: %@";

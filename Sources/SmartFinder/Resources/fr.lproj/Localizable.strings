@@ -1,0 +1,16 @@
+"button.back" = "Retour";
+"button.forward" = "Suivant";
+"button.up" = "Dossier parent";
+"search.placeholder" = "Rechercher dans le dossier actuel";
+
+"sidebar.home" = "Accueil";
+"sidebar.desktop" = "Bureau";
+"sidebar.downloads" = "Téléchargements";
+"sidebar.documents" = "Documents";
+"sidebar.pictures" = "Images";
+
+"status.loading" = "Chargement";
+"status.items.one" = "%d élément";
+"status.items.other" = "%d éléments";
+"status.selected" = ", %d sélectionné(s)";
+"error.cannotReadFolder" = "Impossible de lire le dossier : %@";

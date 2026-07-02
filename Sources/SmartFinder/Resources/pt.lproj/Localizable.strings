@@ -1,0 +1,16 @@
+"button.back" = "Voltar";
+"button.forward" = "Avançar";
+"button.up" = "Subir";
+"search.placeholder" = "Pesquisar na pasta atual";
+
+"sidebar.home" = "Início";
+"sidebar.desktop" = "Mesa";
+"sidebar.downloads" = "Transferências";
+"sidebar.documents" = "Documentos";
+"sidebar.pictures" = "Imagens";
+
+"status.loading" = "A carregar";
+"status.items.one" = "%d item";
+"status.items.other" = "%d itens";
+"status.selected" = ", %d selecionados";
+"error.cannotReadFolder" = "Não foi possível ler a pasta: %@";

@@ -1,0 +1,16 @@
+"button.back" = "뒤로";
+"button.forward" = "앞으로";
+"button.up" = "상위";
+"search.placeholder" = "현재 폴더 검색";
+
+"sidebar.home" = "홈";
+"sidebar.desktop" = "데스크탑";
+"sidebar.downloads" = "다운로드";
+"sidebar.documents" = "문서";
+"sidebar.pictures" = "사진";
+
+"status.loading" = "불러오는 중";
+"status.items.one" = "%d개 항목";
+"status.items.other" = "%d개 항목";
+"status.selected" = ", %d개 선택됨";
+"error.cannotReadFolder" = "폴더를 읽을 수 없음: %@";

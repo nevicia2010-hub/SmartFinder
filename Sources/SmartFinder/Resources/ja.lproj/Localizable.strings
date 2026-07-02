@@ -1,0 +1,16 @@
+"button.back" = "戻る";
+"button.forward" = "進む";
+"button.up" = "上へ";
+"search.placeholder" = "現在のフォルダを検索";
+
+"sidebar.home" = "ホーム";
+"sidebar.desktop" = "デスクトップ";
+"sidebar.downloads" = "ダウンロード";
+"sidebar.documents" = "書類";
+"sidebar.pictures" = "ピクチャ";
+
+"status.loading" = "読み込み中";
+"status.items.one" = "%d項目";
+"status.items.other" = "%d項目";
+"status.selected" = "、%d項目を選択";
+"error.cannotReadFolder" = "フォルダを読み込めません: %@";
