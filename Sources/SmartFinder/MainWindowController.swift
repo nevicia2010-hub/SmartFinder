@@ -8,6 +8,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate {
     private let statusField = NSTextField(labelWithString: "")
     private let searchField = NSSearchField()
     private let iconSizeSlider = NSSlider(value: 96, minValue: 64, maxValue: 180, target: nil, action: nil)
+    private let sortPopup = NSPopUpButton()
     private let backButton = NSButton(title: L10n.string("button.back", fallback: "Back"), target: nil, action: nil)
     private let forwardButton = NSButton(title: L10n.string("button.forward", fallback: "Forward"), target: nil, action: nil)
     private let upButton = NSButton(title: L10n.string("button.up", fallback: "Up"), target: nil, action: nil)
@@ -140,6 +141,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate {
         iconSizeSlider.action = #selector(iconSizeChanged(_:))
         iconSizeSlider.toolTip = L10n.string("toolbar.iconSize", fallback: "Icon Size")
         iconSizeSlider.widthAnchor.constraint(equalToConstant: 110).isActive = true
+        configureSortPopup()
 
         let stack = NSStackView(views: [
             backButton,
@@ -150,6 +152,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate {
             revealButton,
             pathField,
             searchField,
+            sortPopup,
             iconSizeSlider
         ])
         stack.orientation = .horizontal
@@ -159,6 +162,20 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate {
         pathField.setContentHuggingPriority(.defaultLow, for: .horizontal)
         searchField.widthAnchor.constraint(equalToConstant: 220).isActive = true
         return stack
+    }
+
+    private func configureSortPopup() {
+        sortPopup.removeAllItems()
+        sortPopup.addItems(withTitles: [
+            L10n.string("toolbar.sort.name", fallback: "Name"),
+            L10n.string("toolbar.sort.type", fallback: "Type"),
+            L10n.string("toolbar.sort.size", fallback: "Size"),
+            L10n.string("toolbar.sort.modified", fallback: "Modified")
+        ])
+        sortPopup.toolTip = L10n.string("toolbar.sort.toolTip", fallback: "Sort")
+        sortPopup.target = self
+        sortPopup.action = #selector(sortModeChanged(_:))
+        sortPopup.widthAnchor.constraint(equalToConstant: 122).isActive = true
     }
 
     private func toolbarIconButton(symbolName: String, fallbackTitle: String, action: Selector) -> NSButton {
@@ -344,6 +361,19 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate {
 
     @objc private func iconSizeChanged(_ sender: NSSlider) {
         gridController.setIconSize(CGFloat(sender.doubleValue))
+    }
+
+    @objc private func sortModeChanged(_ sender: NSPopUpButton) {
+        switch sender.indexOfSelectedItem {
+        case 1:
+            gridController.setSortMode(.type)
+        case 2:
+            gridController.setSortMode(.size)
+        case 3:
+            gridController.setSortMode(.modified)
+        default:
+            gridController.setSortMode(.name)
+        }
     }
 
     @objc private func openPathFromField() {

@@ -23,6 +23,20 @@
 "toolbar.newFolder" = "新建文件夹";
 "toolbar.revealInFinder" = "在 Finder 中显示";
 "toolbar.iconSize" = "图标大小";
+"toolbar.sort.toolTip" = "排序";
+"toolbar.sort.name" = "名称";
+"toolbar.sort.type" = "类型";
+"toolbar.sort.size" = "大小";
+"toolbar.sort.modified" = "修改日期";
+
+"category.folder" = "文件夹";
+"category.image" = "图片";
+"category.video" = "视频";
+"category.audio" = "音频";
+"category.document" = "文档";
+"category.archive" = "压缩包";
+"category.code" = "代码";
+"category.file" = "文件";
 
 "menu.open" = "打开";
 "menu.quickLook" = "快速查看";

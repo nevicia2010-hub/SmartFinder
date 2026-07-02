@@ -7,7 +7,9 @@ public final class DirectoryStore {
         let keys: Set<URLResourceKey> = [
             .isDirectoryKey,
             .isHiddenKey,
-            .localizedNameKey
+            .localizedNameKey,
+            .fileSizeKey,
+            .contentModificationDateKey
         ]
 
         let urls = try FileManager.default.contentsOfDirectory(
@@ -23,7 +25,9 @@ public final class DirectoryStore {
                 url: url,
                 name: values.localizedName ?? url.lastPathComponent,
                 isDirectory: isDirectory,
-                category: FileClassifier.category(for: url, isDirectory: isDirectory)
+                category: FileClassifier.category(for: url, isDirectory: isDirectory),
+                byteSize: values.fileSize.map(Int64.init),
+                modifiedAt: values.contentModificationDate
             )
         }
         .sorted { left, right in

@@ -23,6 +23,20 @@
 "toolbar.newFolder" = "새 폴더";
 "toolbar.revealInFinder" = "Finder에서 보기";
 "toolbar.iconSize" = "아이콘 크기";
+"toolbar.sort.toolTip" = "정렬";
+"toolbar.sort.name" = "이름";
+"toolbar.sort.type" = "유형";
+"toolbar.sort.size" = "크기";
+"toolbar.sort.modified" = "수정일";
+
+"category.folder" = "폴더";
+"category.image" = "이미지";
+"category.video" = "비디오";
+"category.audio" = "오디오";
+"category.document" = "문서";
+"category.archive" = "압축 파일";
+"category.code" = "코드";
+"category.file" = "파일";
 
 "menu.open" = "열기";
 "menu.quickLook" = "훑어보기";

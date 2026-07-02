@@ -11,7 +11,7 @@ public final class ThumbnailPipeline {
     }
 
     public static func isThumbnailEligible(_ category: FileCategory) -> Bool {
-        category == .image
+        category == .image || category == .video
     }
 
     public func cachedThumbnail(for url: URL) -> NSImage? {

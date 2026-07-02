@@ -5,6 +5,7 @@ final class FileItemCell: NSCollectionViewItem {
 
     private let iconView = NSImageView()
     private let titleField = NSTextField(labelWithString: "")
+    private let subtitleField = NSTextField(labelWithString: "")
     private var iconWidthConstraint: NSLayoutConstraint?
     private var iconHeightConstraint: NSLayoutConstraint?
 
@@ -22,8 +23,16 @@ final class FileItemCell: NSCollectionViewItem {
         titleField.font = .systemFont(ofSize: 12)
         titleField.translatesAutoresizingMaskIntoConstraints = false
 
+        subtitleField.alignment = .center
+        subtitleField.lineBreakMode = .byTruncatingTail
+        subtitleField.maximumNumberOfLines = 1
+        subtitleField.font = .systemFont(ofSize: 10)
+        subtitleField.textColor = .secondaryLabelColor
+        subtitleField.translatesAutoresizingMaskIntoConstraints = false
+
         view.addSubview(iconView)
         view.addSubview(titleField)
+        view.addSubview(subtitleField)
 
         iconWidthConstraint = iconView.widthAnchor.constraint(equalToConstant: 96)
         iconHeightConstraint = iconView.heightAnchor.constraint(equalToConstant: 96)
@@ -36,7 +45,11 @@ final class FileItemCell: NSCollectionViewItem {
 
             titleField.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: 6),
             titleField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 4),
-            titleField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -4)
+            titleField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -4),
+
+            subtitleField.topAnchor.constraint(equalTo: titleField.bottomAnchor, constant: 2),
+            subtitleField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 4),
+            subtitleField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -4)
         ])
     }
 
@@ -44,6 +57,7 @@ final class FileItemCell: NSCollectionViewItem {
         super.prepareForReuse()
         iconView.image = nil
         titleField.stringValue = ""
+        subtitleField.stringValue = ""
         representedObject = nil
     }
 
@@ -55,11 +69,12 @@ final class FileItemCell: NSCollectionViewItem {
         }
     }
 
-    func configure(name: String, image: NSImage, representedURL: URL, iconSize: CGFloat) {
+    func configure(name: String, subtitle: String, image: NSImage, representedURL: URL, iconSize: CGFloat) {
         representedObject = representedURL
         iconWidthConstraint?.constant = iconSize
         iconHeightConstraint?.constant = iconSize
         iconView.image = image
         titleField.stringValue = name
+        subtitleField.stringValue = subtitle
     }
 }

@@ -5,11 +5,22 @@ public struct FileItem: Hashable {
     public let name: String
     public let isDirectory: Bool
     public let category: FileCategory
+    public let byteSize: Int64?
+    public let modifiedAt: Date?
 
-    public init(url: URL, name: String, isDirectory: Bool, category: FileCategory) {
+    public init(
+        url: URL,
+        name: String,
+        isDirectory: Bool,
+        category: FileCategory,
+        byteSize: Int64? = nil,
+        modifiedAt: Date? = nil
+    ) {
         self.url = url
         self.name = name
         self.isDirectory = isDirectory
         self.category = category
+        self.byteSize = byteSize
+        self.modifiedAt = modifiedAt
     }
 }

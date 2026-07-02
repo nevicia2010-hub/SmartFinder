@@ -1,6 +1,13 @@
 import AppKit
 import SmartFinderCore
 
+enum FileSortMode {
+    case name
+    case type
+    case size
+    case modified
+}
+
 protocol SmartCollectionViewKeyDelegate: AnyObject {
     func smartCollectionViewDidPressSpace()
     func smartCollectionViewDidPressCommandA()
@@ -82,7 +89,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
 
     private let directoryStore = DirectoryStore()
     private let fileOperations = FileOperations()
-    private let iconProvider = IconProvider()
+    private let visualIconProvider = VisualIconProvider()
     private let thumbnailPipeline = ThumbnailPipeline()
     private let quickLookController = QuickLookController()
     private let collectionView = SmartCollectionView()
@@ -92,6 +99,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     private var displayedItems: [FileItem] = []
     private var filterText = ""
     private var iconSize: CGFloat = 96
+    private var sortMode: FileSortMode = .name
 
     override func loadView() {
         let layout = NSCollectionViewFlowLayout()
@@ -176,6 +184,11 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         applyCurrentFilter()
     }
 
+    func setSortMode(_ mode: FileSortMode) {
+        sortMode = mode
+        applyCurrentFilter()
+    }
+
     func collectionView(_ collectionView: NSCollectionView, numberOfItemsInSection section: Int) -> Int {
         displayedItems.count
     }
@@ -183,20 +196,23 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     func collectionView(_ collectionView: NSCollectionView, itemForRepresentedObjectAt indexPath: IndexPath) -> NSCollectionViewItem {
         let item = displayedItems[indexPath.item]
         let cell = collectionView.makeItem(withIdentifier: FileItemCell.reuseIdentifier, for: indexPath) as! FileItemCell
-        let fallbackIcon = iconProvider.icon(for: item)
+        let subtitle = subtitle(for: item)
+        let fallbackIcon = visualIconProvider.icon(for: item, size: iconSize)
 
         if let cached = thumbnailPipeline.cachedThumbnail(for: item.url) {
-            cell.configure(name: item.name, image: cached, representedURL: item.url, iconSize: iconSize)
+            cell.configure(name: item.name, subtitle: subtitle, image: cached, representedURL: item.url, iconSize: iconSize)
         } else {
-            cell.configure(name: item.name, image: fallbackIcon, representedURL: item.url, iconSize: iconSize)
+            cell.configure(name: item.name, subtitle: subtitle, image: fallbackIcon, representedURL: item.url, iconSize: iconSize)
         }
 
         if ThumbnailPipeline.isThumbnailEligible(item.category) {
-            thumbnailPipeline.thumbnail(for: item, size: CGSize(width: iconSize, height: iconSize)) { [weak cell] image in
-                guard let image, cell?.representedObject as? URL == item.url else {
+            thumbnailPipeline.thumbnail(for: item, size: CGSize(width: iconSize, height: iconSize)) { [weak self, weak cell] image in
+                guard let self,
+                      let image,
+                      cell?.representedObject as? URL == item.url else {
                     return
                 }
-                cell?.configure(name: item.name, image: image, representedURL: item.url, iconSize: self.iconSize)
+                cell?.configure(name: item.name, subtitle: subtitle, image: image, representedURL: item.url, iconSize: self.iconSize)
             }
         }
 
@@ -416,14 +432,71 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     private func applyCurrentFilter() {
         let query = filterText.trimmingCharacters(in: .whitespacesAndNewlines)
         if query.isEmpty {
-            displayedItems = allItems
+            displayedItems = sortedItems(allItems)
         } else {
-            displayedItems = allItems.filter {
+            displayedItems = sortedItems(allItems.filter {
                 $0.name.localizedCaseInsensitiveContains(query)
-            }
+            })
         }
         collectionView.reloadData()
         updateStatus()
+    }
+
+    private func sortedItems(_ items: [FileItem]) -> [FileItem] {
+        items.sorted { left, right in
+            if left.isDirectory != right.isDirectory {
+                return left.isDirectory && !right.isDirectory
+            }
+
+            switch sortMode {
+            case .name:
+                return compareByName(left, right)
+            case .type:
+                let leftType = typeSortKey(left)
+                let rightType = typeSortKey(right)
+                if leftType != rightType {
+                    return leftType.localizedStandardCompare(rightType) == .orderedAscending
+                }
+                return compareByName(left, right)
+            case .size:
+                if let leftSize = left.byteSize, let rightSize = right.byteSize, leftSize != rightSize {
+                    return leftSize < rightSize
+                }
+                if left.byteSize != nil && right.byteSize == nil {
+                    return true
+                }
+                if left.byteSize == nil && right.byteSize != nil {
+                    return false
+                }
+                return compareByName(left, right)
+            case .modified:
+                if let leftDate = left.modifiedAt, let rightDate = right.modifiedAt, leftDate != rightDate {
+                    return leftDate > rightDate
+                }
+                if left.modifiedAt != nil && right.modifiedAt == nil {
+                    return true
+                }
+                if left.modifiedAt == nil && right.modifiedAt != nil {
+                    return false
+                }
+                return compareByName(left, right)
+            }
+        }
+    }
+
+    private func compareByName(_ left: FileItem, _ right: FileItem) -> Bool {
+        left.name.localizedStandardCompare(right.name) == .orderedAscending
+    }
+
+    private func typeSortKey(_ item: FileItem) -> String {
+        if item.isDirectory {
+            return "0-folder"
+        }
+        let ext = item.url.pathExtension.lowercased()
+        if !ext.isEmpty {
+            return ext
+        }
+        return categoryLabel(for: item)
     }
 
     private func selectedItems() -> [FileItem] {
@@ -495,7 +568,51 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     }
 
     private func itemSize(forIconSize iconSize: CGFloat) -> NSSize {
-        NSSize(width: max(104, iconSize + 32), height: iconSize + 54)
+        NSSize(width: max(112, iconSize + 36), height: iconSize + 72)
+    }
+
+    private func subtitle(for item: FileItem) -> String {
+        let label = typeLabel(for: item)
+        guard !item.isDirectory, let byteSize = item.byteSize else {
+            return label
+        }
+        return "\(label) - \(byteFormatter.string(fromByteCount: byteSize))"
+    }
+
+    private func typeLabel(for item: FileItem) -> String {
+        let ext = item.url.pathExtension.uppercased()
+        if !item.isDirectory && !ext.isEmpty {
+            return ext
+        }
+        return categoryLabel(for: item)
+    }
+
+    private func categoryLabel(for item: FileItem) -> String {
+        switch item.category {
+        case .folder:
+            return L10n.string("category.folder", fallback: "Folder")
+        case .image:
+            return L10n.string("category.image", fallback: "Image")
+        case .video:
+            return L10n.string("category.video", fallback: "Video")
+        case .audio:
+            return L10n.string("category.audio", fallback: "Audio")
+        case .document:
+            return L10n.string("category.document", fallback: "Document")
+        case .archive:
+            return L10n.string("category.archive", fallback: "Archive")
+        case .code:
+            return L10n.string("category.code", fallback: "Code")
+        case .other:
+            return L10n.string("category.file", fallback: "File")
+        }
+    }
+
+    private var byteFormatter: ByteCountFormatter {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useKB, .useMB, .useGB, .useTB]
+        formatter.countStyle = .file
+        return formatter
     }
 
     private func updateStatus(prefix: String? = nil) {

@@ -23,6 +23,20 @@
 "toolbar.newFolder" = "Nouveau dossier";
 "toolbar.revealInFinder" = "Afficher dans le Finder";
 "toolbar.iconSize" = "Taille des icônes";
+"toolbar.sort.toolTip" = "Trier";
+"toolbar.sort.name" = "Nom";
+"toolbar.sort.type" = "Type";
+"toolbar.sort.size" = "Taille";
+"toolbar.sort.modified" = "Modifié";
+
+"category.folder" = "Dossier";
+"category.image" = "Image";
+"category.video" = "Vidéo";
+"category.audio" = "Audio";
+"category.document" = "Document";
+"category.archive" = "Archive";
+"category.code" = "Code";
+"category.file" = "Fichier";
 
 "menu.open" = "Ouvrir";
 "menu.quickLook" = "Coup d’œil";

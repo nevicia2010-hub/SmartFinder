@@ -23,6 +23,20 @@
 "toolbar.newFolder" = "新規フォルダ";
 "toolbar.revealInFinder" = "Finderで表示";
 "toolbar.iconSize" = "アイコンサイズ";
+"toolbar.sort.toolTip" = "並べ替え";
+"toolbar.sort.name" = "名前";
+"toolbar.sort.type" = "種類";
+"toolbar.sort.size" = "サイズ";
+"toolbar.sort.modified" = "変更日";
+
+"category.folder" = "フォルダ";
+"category.image" = "画像";
+"category.video" = "ビデオ";
+"category.audio" = "オーディオ";
+"category.document" = "書類";
+"category.archive" = "アーカイブ";
+"category.code" = "コード";
+"category.file" = "ファイル";
 
 "menu.open" = "開く";
 "menu.quickLook" = "クイックルック";
