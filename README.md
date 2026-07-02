@@ -56,6 +56,10 @@ The app is ad-hoc signed for local use. It is not Apple Developer ID signed or n
 
 Open `dist/SmartFinder-0.1.0.dmg`, then drag `SmartFinder.app` to `Applications`.
 
+## License
+
+MIT License. See `LICENSE`.
+
 ## Current Scope
 
 This is not a system Finder replacement. It does not replace the Desktop, file picker, Spotlight, iCloud Drive, or "Show in Finder" behavior. It is a separate native window for folders where Finder's thumbnail behavior is inconvenient.
