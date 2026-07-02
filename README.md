@@ -2,6 +2,10 @@
 
 SmartFinder is a small macOS Finder Companion focused on predictable icon-view browsing. It follows familiar macOS patterns, but it is not a pixel-perfect Finder clone.
 
+![SmartFinder demo icon view](docs/screenshots/smartfinder-demo.png)
+
+The demo folder used for this screenshot is included at `demo/SmartFinderDemoFiles`.
+
 The first version opens a folder in a Finder-like icon grid:
 
 - Image and supported RAW photo files show real thumbnails.
@@ -81,13 +85,13 @@ If `--path` is omitted, SmartFinder opens the user's home folder.
 The script creates:
 
 - `.build/package/SmartFinder.app`
-- `dist/SmartFinder-0.8.2.dmg`
+- `dist/SmartFinder-0.8.3.dmg`
 
 The app is ad-hoc signed for local use. It is not Apple Developer ID signed or notarized, so macOS may show the standard warning the first time it is opened on another machine.
 
 ## Install from DMG
 
-Open `dist/SmartFinder-0.8.2.dmg`, then drag `SmartFinder.app` to `Applications`.
+Open `dist/SmartFinder-0.8.3.dmg`, then drag `SmartFinder.app` to `Applications`.
 
 ## RAW Photo Files
 

@@ -25,7 +25,7 @@ public enum FileClassifier {
     ]
 
     private static let documentExtensions: Set<String> = [
-        "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "pages", "numbers", "key"
+        "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "pages", "numbers", "key", "md", "markdown"
     ]
 
     private static let videoExtensions: Set<String> = [
@@ -43,7 +43,7 @@ public enum FileClassifier {
     private static let codeExtensions: Set<String> = [
         "swift", "js", "jsx", "ts", "tsx", "py", "rb", "go", "rs", "java",
         "c", "h", "m", "mm", "cpp", "hpp", "cs", "php", "html", "css",
-        "scss", "json", "xml", "yaml", "yml", "md", "sh", "zsh", "sql"
+        "scss", "json", "xml", "yaml", "yml", "sh", "zsh", "sql"
     ]
 
     public static func category(for url: URL, isDirectory: Bool) -> FileCategory {
