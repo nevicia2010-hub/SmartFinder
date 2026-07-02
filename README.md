@@ -1,6 +1,6 @@
 # SmartFinder
 
-SmartFinder is a small macOS Finder Companion focused on predictable icon-view browsing.
+SmartFinder is a small macOS Finder Companion focused on predictable icon-view browsing. It follows familiar macOS patterns, but it is not a pixel-perfect Finder clone.
 
 The first version opens a folder in a Finder-like icon grid:
 
@@ -13,6 +13,7 @@ The first version opens a folder in a Finder-like icon grid:
 - File tiles include a compact type/size subtitle, such as `PDF - 2.4 MB` or `CR3 - 28 MB`.
 - The toolbar can sort the current folder by name, type, size, or modified date.
 - Back and forward are integrated as a Finder-style segmented navigation control, with a separate Up button.
+- The back/forward navigation control uses a larger SmartFinder-sized hit area without copying Finder pixel-for-pixel.
 - Finder-like toolbar menus provide display presets, grouping/sorting, system sharing, tags, and common file actions.
 - The window uses a Finder-like full-height sidebar, transparent titlebar, compact breadcrumb row, and neutral toolbar symbols.
 - Toolbar symbols now follow Finder-like availability states: enabled controls are bright, while unavailable controls are dimmed.
@@ -64,13 +65,13 @@ If `--path` is omitted, SmartFinder opens the user's home folder.
 The script creates:
 
 - `.build/package/SmartFinder.app`
-- `dist/SmartFinder-0.5.1.dmg`
+- `dist/SmartFinder-0.5.2.dmg`
 
 The app is ad-hoc signed for local use. It is not Apple Developer ID signed or notarized, so macOS may show the standard warning the first time it is opened on another machine.
 
 ## Install from DMG
 
-Open `dist/SmartFinder-0.5.1.dmg`, then drag `SmartFinder.app` to `Applications`.
+Open `dist/SmartFinder-0.5.2.dmg`, then drag `SmartFinder.app` to `Applications`.
 
 ## RAW Photo Files
 
@@ -109,4 +110,4 @@ MIT License. See `LICENSE`.
 
 ## Current Scope
 
-This is not a system Finder replacement. It does not replace the Desktop, file picker, Spotlight, iCloud Drive, or "Show in Finder" behavior. It is a separate native window for folders where Finder's thumbnail behavior is inconvenient.
+This is not a system Finder replacement or a pixel-perfect Finder clone. It does not replace the Desktop, file picker, Spotlight, iCloud Drive, or "Show in Finder" behavior. It is a separate native window for folders where Finder's thumbnail behavior is inconvenient.
