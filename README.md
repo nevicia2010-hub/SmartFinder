@@ -2,6 +2,8 @@
 
 SmartFinder is a small macOS Finder Companion focused on predictable icon-view browsing. It follows familiar macOS patterns, but it is not a pixel-perfect Finder clone.
 
+Requires macOS 13 Ventura or later.
+
 ![SmartFinder demo icon view](docs/screenshots/smartfinder-demo.png)
 
 The demo folder used for this screenshot is included at `demo/SmartFinderDemoFiles`.
@@ -51,7 +53,8 @@ The first version opens a folder in a Finder-like icon grid:
 
 ## Requirements
 
-- macOS with Apple Swift command line tools.
+- macOS 13 Ventura or later. macOS 12 Monterey and older are not supported.
+- Apple Swift command line tools.
 - Full Xcode is not required for the current Swift Package build.
 
 ## Build
