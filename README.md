@@ -37,7 +37,7 @@ The demo folder used for this screenshot is included at `demo/SmartFinderDemoFil
 - Back and forward arrows remain visible in gray when unavailable, then brighten when that direction becomes available.
 - Finder-like toolbar menus provide display presets, grouping/sorting, system sharing, real Finder color tags, and common file actions.
 - Windows Explorer-style convenience toggles are available for hidden items, file name extensions, and item selection checkboxes.
-- A lightweight details pane can show selected item metadata without generating document thumbnails.
+- A lightweight details pane can show selected item metadata and photo EXIF basics without generating document thumbnails.
 - The Actions menu includes Copy To, Move To, New Text File, New Markdown File, and New CSV File for common folder work.
 - The tag menu writes real Finder color labels instead of text-only tags; tagged folders use the matching folder icon color, while tagged files keep their system icons with a compact color indicator.
 - The window uses a Finder-like full-height sidebar, transparent titlebar, compact breadcrumb row, and neutral toolbar symbols.
@@ -47,6 +47,7 @@ The demo folder used for this screenshot is included at `demo/SmartFinderDemoFil
 - The toolbar shows direct Finder-style view mode segments when the window is wide enough, and falls back to the Display menu when space is tight.
 - Main interface fonts use AppKit preferred text styles where available, so text follows macOS system text choices more naturally.
 - Mounted volumes in the sidebar include an eject button.
+- Mounted-volume eject actions report started, succeeded, and failed states in the status bar.
 - Toolbar buttons use larger Finder-like hit areas and symbol sizes.
 - In full screen, the custom toolbar keeps a top guard so the revealed macOS menu bar does not cover the controls.
 - Mounted external volumes appear in the Finder-style sidebar and refresh automatically when disks are mounted, unmounted, or renamed.
@@ -55,6 +56,8 @@ The demo folder used for this screenshot is included at `demo/SmartFinderDemoFil
 - Column view adapts each column width to the visible file names, with a clamp to keep very long names from consuming the whole window.
 - A path breadcrumb bar lets you jump directly to parent folders.
 - Common window operations are available: refresh, new folder, rename, move to Trash, copy/paste, copy path, compress, reveal in Finder, Get Info, context menu, editable path field, and icon-size control.
+- Folder size is available on demand for a selected folder and can be cancelled while running.
+- A dual-pane mode can be opened from the Display menu for drag-and-drop file moves without loading the second pane at startup.
 - Drag and drop supports Finder-style file moves by default and copies when holding Option.
 - Sidebar locations accept dragged files for quick move/copy into common folders or mounted volumes.
 - Context menus include New Folder, New Text File, New Markdown File, New CSV File, Copy Name, Copy Path, Copy Parent Path, and Copy as Shell Path.
@@ -103,13 +106,13 @@ If `--path` is omitted, SmartFinder opens the user's home folder.
 The script creates:
 
 - `.build/package/SmartFinder.app`
-- `dist/SmartFinder-0.8.8.dmg`
+- `dist/SmartFinder-0.8.9.dmg`
 
 The app is ad-hoc signed for local use. It is not Apple Developer ID signed or notarized, so macOS may show the standard warning the first time it is opened on another machine.
 
 ## Install from DMG
 
-Open `dist/SmartFinder-0.8.8.dmg`, then drag `SmartFinder.app` to `Applications`.
+Open `dist/SmartFinder-0.8.9.dmg`, then drag `SmartFinder.app` to `Applications`.
 
 ## RAW Photo Files
 
@@ -126,9 +129,11 @@ SmartFinder is intentionally selective about content thumbnails:
 - This keeps large mixed folders easier to scan without asking macOS to render every document page.
 - List view uses metadata and system icons only; it does not run the thumbnail pipeline.
 - Column view uses metadata and system icons only; it does not run the thumbnail pipeline.
-- The details pane uses file metadata and system icons, so it does not start a heavy preview database.
+- The details pane uses file metadata, system icons, and selected-file photo metadata only when the pane is visible, so it does not start a heavy preview database.
 - Toolbar menus are created on demand and operate on the current folder or current selection; SmartFinder does not run a full-disk indexer or pre-render document thumbnails.
 - Status size totals only selected regular files with known byte sizes; folders are not recursively scanned in the background.
+- Folder size calculations are manual, cancellable, and run only for the selected folder.
+- Dual-pane mode is off by default; the secondary pane loads a folder only when the user opens the mode.
 
 ## Localizations
 

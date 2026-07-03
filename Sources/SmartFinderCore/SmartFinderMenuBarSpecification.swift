@@ -13,6 +13,8 @@ public enum SmartFinderMenuAction: String, Equatable, Sendable {
     case rename
     case moveToTrash
     case compress
+    case calculateFolderSize
+    case cancelFolderSizeCalculation
     case revealInFinder
     case copy
     case paste
@@ -35,6 +37,7 @@ public enum SmartFinderMenuAction: String, Equatable, Sendable {
     case fileExtensions
     case itemCheckboxes
     case detailsPane
+    case dualPane
     case sortName
     case sortType
     case sortSize
@@ -124,6 +127,8 @@ public enum SmartFinderMenuBarSpecification {
             SmartFinderMenuItemSpecification(titleKey: "menu.rename", fallbackTitle: "Rename", action: .rename),
             SmartFinderMenuItemSpecification(titleKey: "menu.moveToTrash", fallbackTitle: "Move to Trash", action: .moveToTrash, keyEquivalent: "\u{8}", modifiers: [.command]),
             SmartFinderMenuItemSpecification(titleKey: "menu.compress", fallbackTitle: "Compress", action: .compress),
+            SmartFinderMenuItemSpecification(titleKey: "menu.calculateFolderSize", fallbackTitle: "Calculate Folder Size", action: .calculateFolderSize),
+            SmartFinderMenuItemSpecification(titleKey: "menu.cancelFolderSizeCalculation", fallbackTitle: "Cancel Size Calculation", action: .cancelFolderSizeCalculation),
             SmartFinderMenuItemSpecification(titleKey: "menu.revealInFinder", fallbackTitle: "Reveal in Finder", action: .revealInFinder)
         ]),
         SmartFinderMenuSpecification(titleKey: "menu.edit", fallbackTitle: "Edit", items: [
@@ -149,7 +154,8 @@ public enum SmartFinderMenuBarSpecification {
             SmartFinderMenuItemSpecification(titleKey: "menu.display.hiddenItems", fallbackTitle: "Hidden Items", action: .hiddenItems),
             SmartFinderMenuItemSpecification(titleKey: "menu.display.fileExtensions", fallbackTitle: "File Name Extensions", action: .fileExtensions),
             SmartFinderMenuItemSpecification(titleKey: "menu.display.itemCheckboxes", fallbackTitle: "Item Checkboxes", action: .itemCheckboxes),
-            SmartFinderMenuItemSpecification(titleKey: "menu.display.detailsPane", fallbackTitle: "Details Pane", action: .detailsPane)
+            SmartFinderMenuItemSpecification(titleKey: "menu.display.detailsPane", fallbackTitle: "Details Pane", action: .detailsPane),
+            SmartFinderMenuItemSpecification(titleKey: "menu.display.dualPane", fallbackTitle: "Dual Pane", action: .dualPane)
         ]),
         SmartFinderMenuSpecification(titleKey: "menu.go", fallbackTitle: "Go", items: [
             SmartFinderMenuItemSpecification(titleKey: "button.back", fallbackTitle: "Back", action: .goBack, keyEquivalent: "[", modifiers: [.command]),

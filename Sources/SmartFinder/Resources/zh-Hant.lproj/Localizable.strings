@@ -25,6 +25,12 @@
 
 "status.loading" = "載入中";
 "status.compressing" = "正在壓縮";
+"status.calculatingFolderSize" = "正在計算資料夾大小";
+"status.folderSizeResult" = "%@：%@，%d 個檔案";
+"status.folderSizeCancelled" = "已取消資料夾大小計算";
+"status.ejectingVolume" = "正在退出 %@...";
+"status.ejectedVolume" = "已退出 %@";
+"status.ejectVolumeFailed" = "無法退出 %@：%@";
 "status.items.one" = "%d 個項目";
 "status.items.other" = "%d 個項目";
 "status.selected" = "，已選取 %d 項";
@@ -71,6 +77,7 @@
 "menu.display.fileExtensions" = "檔案副檔名";
 "menu.display.itemCheckboxes" = "項目核取方塊";
 "menu.display.detailsPane" = "詳細資訊窗格";
+"menu.display.dualPane" = "雙欄";
 "menu.tags.add" = "加入標籤...";
 "menu.tags.red" = "紅色";
 "menu.tags.orange" = "橙色";
@@ -97,6 +104,8 @@
 "menu.copyParentPath" = "拷貝上層路徑";
 "menu.copyShellPath" = "拷貝為 Shell 路徑";
 "menu.compress" = "壓縮";
+"menu.calculateFolderSize" = "計算資料夾大小";
+"menu.cancelFolderSizeCalculation" = "取消大小計算";
 "menu.paste" = "貼上";
 "menu.revealInFinder" = "在 Finder 中顯示";
 
@@ -107,6 +116,13 @@
 "info.where" = "位置";
 "info.created" = "建立時間";
 "info.modified" = "修改時間";
+"photo.camera" = "相機";
+"photo.lens" = "鏡頭";
+"photo.dimensions" = "尺寸";
+"photo.iso" = "ISO";
+"photo.focalLength" = "焦距";
+"photo.aperture" = "光圈";
+"photo.shutterSpeed" = "快門";
 
 "dialog.newFolder.title" = "新增資料夾";
 "dialog.newFolder.message" = "輸入新資料夾名稱。";

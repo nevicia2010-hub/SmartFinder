@@ -25,6 +25,12 @@
 
 "status.loading" = "Cargando";
 "status.compressing" = "Comprimiendo";
+"status.calculatingFolderSize" = "Calculando tamaño de carpeta";
+"status.folderSizeResult" = "%@: %@, %d archivos";
+"status.folderSizeCancelled" = "Cálculo de tamaño cancelado";
+"status.ejectingVolume" = "Expulsando %@...";
+"status.ejectedVolume" = "%@ expulsado";
+"status.ejectVolumeFailed" = "No se pudo expulsar %@: %@";
 "status.items.one" = "%d elemento";
 "status.items.other" = "%d elementos";
 "status.selected" = ", %d seleccionado(s)";
@@ -71,6 +77,7 @@
 "menu.display.fileExtensions" = "Extensiones de archivo";
 "menu.display.itemCheckboxes" = "Casillas de elementos";
 "menu.display.detailsPane" = "Panel de detalles";
+"menu.display.dualPane" = "Doble panel";
 "menu.tags.add" = "Añadir etiqueta...";
 "menu.tags.red" = "Rojo";
 "menu.tags.orange" = "Naranja";
@@ -97,6 +104,8 @@
 "menu.copyParentPath" = "Copiar ruta de carpeta contenedora";
 "menu.copyShellPath" = "Copiar como ruta de shell";
 "menu.compress" = "Comprimir";
+"menu.calculateFolderSize" = "Calcular tamaño de carpeta";
+"menu.cancelFolderSizeCalculation" = "Cancelar cálculo de tamaño";
 "menu.paste" = "Pegar";
 "menu.revealInFinder" = "Mostrar en Finder";
 
@@ -107,6 +116,13 @@
 "info.where" = "Ubicación";
 "info.created" = "Creado";
 "info.modified" = "Modificado";
+"photo.camera" = "Cámara";
+"photo.lens" = "Objetivo";
+"photo.dimensions" = "Dimensiones";
+"photo.iso" = "ISO";
+"photo.focalLength" = "Distancia focal";
+"photo.aperture" = "Apertura";
+"photo.shutterSpeed" = "Obturador";
 
 "dialog.newFolder.title" = "Nueva carpeta";
 "dialog.newFolder.message" = "Introduce un nombre para la nueva carpeta.";

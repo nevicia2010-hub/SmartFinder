@@ -2,6 +2,15 @@
 
 ## 2026-07-03
 
+### Convenience Pass Two
+
+- Added status-bar feedback for mounted-volume eject actions, including started, succeeded, and failed states.
+- Extended the details pane with selected-photo EXIF basics such as camera, lens, dimensions, ISO, focal length, aperture, and shutter speed.
+- Kept photo metadata reads gated behind the visible details pane so normal browsing does not read metadata for every selection.
+- Added on-demand, cancellable folder-size calculation for a single selected folder.
+- Added a default-off dual-pane mode for drag-and-drop folder work; the secondary pane loads only when the mode is opened.
+- Added localizations and core coverage for eject feedback, photo metadata parsing, folder-size calculation/cancellation, and dual-pane loading policy.
+
 ### Community Feature Pass
 
 - Added adaptive column widths so column view expands for visible long file names while clamping very long names to avoid swallowing the full window.
@@ -46,7 +55,7 @@
 
 ### Version And Packaging
 
-- Next packaged DMG: `SmartFinder-0.8.8.dmg`
+- Next packaged DMG: `SmartFinder-0.8.9.dmg`
 
 ## 2026-07-02
 

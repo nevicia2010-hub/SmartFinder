@@ -148,8 +148,10 @@ private final class SmartFinderWindow: NSWindow {
 
 final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSWindowDelegate, NSMenuItemValidation {
     private let gridController = FileGridViewController()
+    private let secondaryGridController = FileGridViewController()
     private let mountedVolumeProvider = MountedVolumeProvider()
     private let pathField = NSTextField(string: "")
+    private let secondaryPathField = NSTextField(labelWithString: "")
     private let statusField = NSTextField(labelWithString: "")
     private let searchField = NSSearchField()
     private let iconSizeSlider = NSSlider(value: 96, minValue: 64, maxValue: 180, target: nil, action: nil)
@@ -158,6 +160,8 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
     private let viewModeControl = NSSegmentedControl()
     private let breadcrumbStack = NSStackView()
     private let toolbarTitleField = NSTextField(labelWithString: "")
+    private let browserSplitView = NSSplitView()
+    private let secondaryPaneContainer = NSView()
     private let detailsPane = DetailsPaneView()
     private let mountedVolumeRefreshPolicy = MountedVolumeSidebarRefreshPolicy()
     private let appearanceRefreshPolicy = AppearanceRefreshPolicy()
@@ -190,6 +194,10 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
     private weak var directViewModeContainer: NSView?
     private weak var displayMenuContainer: NSView?
     private var detailsPaneVisible = false
+    private var secondaryPaneVisible = false
+    private var secondaryPaneLoaded = false
+    private var secondaryFolderURL: URL?
+    private var currentSelection: [FileItem] = []
     private var mountedVolumeNotificationObservers: [NSObjectProtocol] = []
     private var appearanceNotificationObservers: [NSObjectProtocol] = []
     private var appearanceRefreshScheduled = false
@@ -256,9 +264,39 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             self?.updateSelectionToolbarButtons()
         }
         gridController.onSelectionChange = { [weak self] items in
-            self?.detailsPane.update(selection: items)
+            guard let self else {
+                return
+            }
+            self.currentSelection = items
+            if self.detailsPaneVisible {
+                self.detailsPane.update(selection: items)
+            }
         }
         gridController.onKeyboardShortcut = { [weak self] shortcut in
+            self?.handleWindowKeyboardShortcut(shortcut) ?? false
+        }
+        secondaryGridController.onOpenFolder = { [weak self] url in
+            self?.navigateSecondaryPane(to: url)
+        }
+        secondaryGridController.onColumnFolderChange = { [weak self] url in
+            self?.updateSecondaryPaneLocation(to: url)
+        }
+        secondaryGridController.onStatusChange = { [weak self] status in
+            guard self?.secondaryPaneVisible == true else {
+                return
+            }
+            self?.statusField.stringValue = status
+        }
+        secondaryGridController.onSelectionChange = { [weak self] items in
+            guard let self else {
+                return
+            }
+            self.currentSelection = items
+            if self.detailsPaneVisible {
+                self.detailsPane.update(selection: items)
+            }
+        }
+        secondaryGridController.onKeyboardShortcut = { [weak self] shortcut in
             self?.handleWindowKeyboardShortcut(shortcut) ?? false
         }
 
@@ -274,12 +312,14 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         let rightPane = NSView()
         let sidebar = makeSidebar()
         let statusBar = makeStatusBar()
+        configureBrowserSplitView()
+        configureSecondaryPane()
 
         toolbar.translatesAutoresizingMaskIntoConstraints = false
         breadcrumbBar.translatesAutoresizingMaskIntoConstraints = false
         rightPane.translatesAutoresizingMaskIntoConstraints = false
         sidebar.translatesAutoresizingMaskIntoConstraints = false
-        gridController.view.translatesAutoresizingMaskIntoConstraints = false
+        browserSplitView.translatesAutoresizingMaskIntoConstraints = false
         detailsPane.translatesAutoresizingMaskIntoConstraints = false
         statusBar.translatesAutoresizingMaskIntoConstraints = false
 
@@ -287,7 +327,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         contentView.addSubview(rightPane)
         rightPane.addSubview(toolbar)
         rightPane.addSubview(breadcrumbBar)
-        rightPane.addSubview(gridController.view)
+        rightPane.addSubview(browserSplitView)
         rightPane.addSubview(detailsPane)
         rightPane.addSubview(statusBar)
 
@@ -323,10 +363,10 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             statusBar.bottomAnchor.constraint(equalTo: rightPane.bottomAnchor),
             statusBar.heightAnchor.constraint(equalToConstant: 28),
 
-            gridController.view.topAnchor.constraint(equalTo: breadcrumbBar.bottomAnchor),
-            gridController.view.leadingAnchor.constraint(equalTo: rightPane.leadingAnchor),
-            gridController.view.trailingAnchor.constraint(equalTo: detailsPane.leadingAnchor),
-            gridController.view.bottomAnchor.constraint(equalTo: statusBar.topAnchor),
+            browserSplitView.topAnchor.constraint(equalTo: breadcrumbBar.bottomAnchor),
+            browserSplitView.leadingAnchor.constraint(equalTo: rightPane.leadingAnchor),
+            browserSplitView.trailingAnchor.constraint(equalTo: detailsPane.leadingAnchor),
+            browserSplitView.bottomAnchor.constraint(equalTo: statusBar.topAnchor),
 
             detailsPane.topAnchor.constraint(equalTo: breadcrumbBar.bottomAnchor),
             detailsPane.trailingAnchor.constraint(equalTo: rightPane.trailingAnchor),
@@ -334,6 +374,60 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             detailsPaneWidthConstraint
         ])
         updateToolbarResponsiveState()
+    }
+
+    private func configureBrowserSplitView() {
+        browserSplitView.isVertical = true
+        browserSplitView.dividerStyle = .thin
+        browserSplitView.addArrangedSubview(gridController.view)
+        browserSplitView.addArrangedSubview(secondaryPaneContainer)
+        secondaryPaneContainer.isHidden = true
+    }
+
+    private func configureSecondaryPane() {
+        secondaryPathField.font = FinderFonts.status
+        secondaryPathField.textColor = .secondaryLabelColor
+        secondaryPathField.lineBreakMode = .byTruncatingMiddle
+        secondaryPathField.translatesAutoresizingMaskIntoConstraints = false
+
+        let closeButton = NSButton(
+            image: NSImage(systemSymbolName: "xmark.circle", accessibilityDescription: L10n.string("menu.display.dualPane", fallback: "Dual Pane")) ?? NSImage(),
+            target: self,
+            action: #selector(closeSecondaryPane)
+        )
+        closeButton.isBordered = false
+        closeButton.imagePosition = .imageOnly
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+
+        let header = NSView()
+        header.translatesAutoresizingMaskIntoConstraints = false
+        header.addSubview(secondaryPathField)
+        header.addSubview(closeButton)
+
+        secondaryGridController.view.translatesAutoresizingMaskIntoConstraints = false
+        secondaryPaneContainer.addSubview(header)
+        secondaryPaneContainer.addSubview(secondaryGridController.view)
+
+        NSLayoutConstraint.activate([
+            header.topAnchor.constraint(equalTo: secondaryPaneContainer.topAnchor),
+            header.leadingAnchor.constraint(equalTo: secondaryPaneContainer.leadingAnchor),
+            header.trailingAnchor.constraint(equalTo: secondaryPaneContainer.trailingAnchor),
+            header.heightAnchor.constraint(equalToConstant: 30),
+
+            secondaryPathField.leadingAnchor.constraint(equalTo: header.leadingAnchor, constant: 10),
+            secondaryPathField.centerYAnchor.constraint(equalTo: header.centerYAnchor),
+            secondaryPathField.trailingAnchor.constraint(equalTo: closeButton.leadingAnchor, constant: -8),
+
+            closeButton.trailingAnchor.constraint(equalTo: header.trailingAnchor, constant: -8),
+            closeButton.centerYAnchor.constraint(equalTo: header.centerYAnchor),
+            closeButton.widthAnchor.constraint(equalToConstant: 24),
+            closeButton.heightAnchor.constraint(equalToConstant: 24),
+
+            secondaryGridController.view.topAnchor.constraint(equalTo: header.bottomAnchor),
+            secondaryGridController.view.leadingAnchor.constraint(equalTo: secondaryPaneContainer.leadingAnchor),
+            secondaryGridController.view.trailingAnchor.constraint(equalTo: secondaryPaneContainer.trailingAnchor),
+            secondaryGridController.view.bottomAnchor.constraint(equalTo: secondaryPaneContainer.bottomAnchor)
+        ])
     }
 
     func windowWillEnterFullScreen(_ notification: Notification) {
@@ -437,6 +531,10 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             return hasCurrentFolder
         case .openSelection, .quickLook, .getInfo, .moveToTrash, .compress, .copyName, .copyPath, .copyParentPath, .copyShellPath:
             return hasSelection
+        case .calculateFolderSize:
+            return gridController.hasSingleSelectedFolder()
+        case .cancelFolderSizeCalculation:
+            return gridController.isFolderSizeCalculationRunning()
         case .rename:
             return selectionCount == 1
         case .revealInFinder:
@@ -458,6 +556,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
              .fileExtensions,
              .itemCheckboxes,
              .detailsPane,
+             .dualPane,
              .sortName,
              .sortType,
              .sortSize,
@@ -496,6 +595,10 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             moveSelectionToTrashFromToolbar()
         case .compress:
             compressSelectionFromToolbar()
+        case .calculateFolderSize:
+            calculateFolderSizeFromToolbar()
+        case .cancelFolderSizeCalculation:
+            cancelFolderSizeCalculationFromToolbar()
         case .revealInFinder:
             revealInFinder()
         case .copyName:
@@ -535,6 +638,8 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             toggleItemCheckboxes()
         case .detailsPane:
             toggleDetailsPane()
+        case .dualPane:
+            toggleDualPane()
         case .sortName:
             sortByName()
         case .sortType:
@@ -568,6 +673,8 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             return gridController.showsSelectionCheckboxesEnabled() ? .on : .off
         case .detailsPane:
             return detailsPaneVisible ? .on : .off
+        case .dualPane:
+            return secondaryPaneVisible ? .on : .off
         case .sortName:
             return currentSortMode == .name ? .on : .off
         case .sortType:
@@ -1051,6 +1158,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
 
     private func refreshAppearance() {
         toolbarTitleField.textColor = .labelColor
+        secondaryPathField.textColor = .secondaryLabelColor
         statusField.textColor = .secondaryLabelColor
         updateNavigationButtons()
         refreshViewModeControlImages()
@@ -1059,6 +1167,9 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             updateBreadcrumbs(for: URL(fileURLWithPath: pathField.stringValue, isDirectory: true))
         }
         gridController.refreshAppearance()
+        if secondaryPaneVisible {
+            secondaryGridController.refreshAppearance()
+        }
         detailsPane.refreshAppearance()
         window?.contentView?.needsDisplay = true
     }
@@ -1373,6 +1484,12 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             action: #selector(toggleDetailsPane),
             state: detailsPaneVisible ? .on : .off
         ))
+        menu.addItem(menuItem(
+            "menu.display.dualPane",
+            fallback: "Dual Pane",
+            action: #selector(toggleDualPane),
+            state: secondaryPaneVisible ? .on : .off
+        ))
         popUp(menu, from: sender)
     }
 
@@ -1436,6 +1553,8 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         menu.addItem(menuItem("menu.copyParentPath", fallback: "Copy Parent Path", action: #selector(copyParentPathFromToolbar), enabled: hasSelection))
         menu.addItem(menuItem("menu.copyShellPath", fallback: "Copy as Shell Path", action: #selector(copyShellPathFromToolbar), enabled: hasSelection))
         menu.addItem(menuItem("menu.compress", fallback: "Compress", action: #selector(compressSelectionFromToolbar), enabled: hasSelection))
+        menu.addItem(menuItem("menu.calculateFolderSize", fallback: "Calculate Folder Size", action: #selector(calculateFolderSizeFromToolbar), enabled: gridController.hasSingleSelectedFolder()))
+        menu.addItem(menuItem("menu.cancelFolderSizeCalculation", fallback: "Cancel Size Calculation", action: #selector(cancelFolderSizeCalculationFromToolbar), enabled: gridController.isFolderSizeCalculationRunning()))
         menu.addItem(menuItem("menu.paste", fallback: "Paste", action: #selector(pasteIntoFolderFromToolbar), enabled: canPaste))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(menuItem("menu.revealInFinder", fallback: "Reveal in Finder", action: #selector(revealInFinder), enabled: hasSelection || canPaste))
@@ -1531,7 +1650,59 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         detailsPaneVisible = visible
         detailsPane.isHidden = !visible
         detailsPaneWidthConstraint?.constant = visible ? 260 : 0
+        if visible {
+            detailsPane.update(selection: currentSelection)
+        }
         window?.contentView?.layoutSubtreeIfNeeded()
+    }
+
+    @objc private func toggleDualPane() {
+        setSecondaryPaneVisible(!secondaryPaneVisible)
+    }
+
+    @objc private func closeSecondaryPane() {
+        setSecondaryPaneVisible(false)
+    }
+
+    private func setSecondaryPaneVisible(_ visible: Bool) {
+        let wasVisible = secondaryPaneVisible
+        secondaryPaneVisible = visible
+        secondaryPaneContainer.isHidden = !visible
+
+        let currentPath = pathField.stringValue
+        if DualPanePolicy.shouldLoadSecondaryPane(
+            wasVisible: wasVisible,
+            isVisible: visible,
+            hasLoadedSecondaryPane: secondaryPaneLoaded
+        ), !currentPath.isEmpty {
+            secondaryPaneLoaded = true
+            let currentURL = URL(fileURLWithPath: currentPath, isDirectory: true)
+            navigateSecondaryPane(to: currentURL)
+        }
+
+        browserSplitView.adjustSubviews()
+        if visible {
+            DispatchQueue.main.async { [weak self] in
+                guard let self else {
+                    return
+                }
+                let splitWidth = self.browserSplitView.bounds.width
+                if splitWidth > 300 {
+                    self.browserSplitView.setPosition(splitWidth / 2, ofDividerAt: 0)
+                }
+            }
+        }
+    }
+
+    private func navigateSecondaryPane(to url: URL) {
+        updateSecondaryPaneLocation(to: url)
+        secondaryGridController.applyFilter("")
+        secondaryGridController.load(folderURL: url)
+    }
+
+    private func updateSecondaryPaneLocation(to url: URL) {
+        secondaryFolderURL = url
+        secondaryPathField.stringValue = url.path
     }
 
     @objc private func sortByName() {
@@ -1665,6 +1836,14 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         gridController.compressSelection()
     }
 
+    @objc private func calculateFolderSizeFromToolbar() {
+        gridController.calculateSelectedFolderSize()
+    }
+
+    @objc private func cancelFolderSizeCalculationFromToolbar() {
+        gridController.cancelFolderSizeCalculation()
+    }
+
     @objc private func getInfoFromToolbar() {
         gridController.showInfoForSelection()
     }
@@ -1764,6 +1943,8 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         }
 
         let volumeURL = sidebarURLs[sender.tag]
+        let volumeName = volumeURL.lastPathComponent
+        statusField.stringValue = localizedEjectFeedback(.started, volumeName: volumeName)
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let result = Result { try NSWorkspace.shared.unmountAndEjectDevice(at: volumeURL) }
             DispatchQueue.main.async {
@@ -1771,6 +1952,10 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
                     return
                 }
                 if case .failure(let error) = result {
+                    self.statusField.stringValue = self.localizedEjectFeedback(
+                        .failed(errorDescription: error.localizedDescription),
+                        volumeName: volumeName
+                    )
                     self.showOperationError(error)
                     return
                 }
@@ -1779,7 +1964,19 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
                     self.navigate(to: home, recordHistory: true)
                 }
                 self.reloadSidebar()
+                self.statusField.stringValue = self.localizedEjectFeedback(.succeeded, volumeName: volumeName)
             }
+        }
+    }
+
+    private func localizedEjectFeedback(_ state: VolumeEjectFeedbackState, volumeName: String) -> String {
+        switch state {
+        case .started:
+            return L10n.format("status.ejectingVolume", fallback: "Ejecting %@...", volumeName)
+        case .succeeded:
+            return L10n.format("status.ejectedVolume", fallback: "Ejected %@", volumeName)
+        case .failed(let errorDescription):
+            return L10n.format("status.ejectVolumeFailed", fallback: "Could not eject %@: %@", volumeName, errorDescription)
         }
     }
 

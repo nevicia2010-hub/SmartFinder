@@ -25,6 +25,12 @@
 
 "status.loading" = "불러오는 중";
 "status.compressing" = "압축 중";
+"status.calculatingFolderSize" = "폴더 크기 계산 중";
+"status.folderSizeResult" = "%@: %@, 파일 %d개";
+"status.folderSizeCancelled" = "폴더 크기 계산 취소됨";
+"status.ejectingVolume" = "%@ 추출 중...";
+"status.ejectedVolume" = "%@ 추출됨";
+"status.ejectVolumeFailed" = "%@을(를) 추출할 수 없음: %@";
 "status.items.one" = "%d개 항목";
 "status.items.other" = "%d개 항목";
 "status.selected" = ", %d개 선택됨";
@@ -71,6 +77,7 @@
 "menu.display.fileExtensions" = "파일 확장자";
 "menu.display.itemCheckboxes" = "항목 체크상자";
 "menu.display.detailsPane" = "세부 정보 패널";
+"menu.display.dualPane" = "듀얼 패널";
 "menu.tags.add" = "태그 추가...";
 "menu.tags.red" = "빨간색";
 "menu.tags.orange" = "주황색";
@@ -97,6 +104,8 @@
 "menu.copyParentPath" = "상위 경로 복사";
 "menu.copyShellPath" = "셸 경로로 복사";
 "menu.compress" = "압축";
+"menu.calculateFolderSize" = "폴더 크기 계산";
+"menu.cancelFolderSizeCalculation" = "크기 계산 취소";
 "menu.paste" = "붙여넣기";
 "menu.revealInFinder" = "Finder에서 보기";
 
@@ -107,6 +116,13 @@
 "info.where" = "위치";
 "info.created" = "생성일";
 "info.modified" = "수정일";
+"photo.camera" = "카메라";
+"photo.lens" = "렌즈";
+"photo.dimensions" = "크기";
+"photo.iso" = "ISO";
+"photo.focalLength" = "초점 거리";
+"photo.aperture" = "조리개";
+"photo.shutterSpeed" = "셔터";
 
 "dialog.newFolder.title" = "새 폴더";
 "dialog.newFolder.message" = "새 폴더 이름을 입력하십시오.";

@@ -1,4 +1,5 @@
 import AppKit
+import ImageIO
 import SmartFinderCore
 
 final class DetailsPaneView: NSVisualEffectView {
@@ -115,8 +116,42 @@ final class DetailsPaneView: NSVisualEffectView {
         if let modifiedAt = item.modifiedAt {
             lines.append("\(L10n.string("info.modified", fallback: "Modified")): \(dateFormatter.string(from: modifiedAt))")
         }
+        lines.append(contentsOf: photoMetadataLines(for: item))
         lines.append("\(L10n.string("info.where", fallback: "Where")): \(item.url.deletingLastPathComponent().path)")
         return lines.joined(separator: "\n")
+    }
+
+    private func photoMetadataLines(for item: FileItem) -> [String] {
+        guard item.category == .image,
+              let source = CGImageSourceCreateWithURL(item.url as CFURL, nil),
+              let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [String: Any] else {
+            return []
+        }
+
+        let summary = PhotoMetadataSummary(properties: properties)
+        var lines: [String] = []
+        if let camera = summary.camera {
+            lines.append("\(L10n.string("photo.camera", fallback: "Camera")): \(camera)")
+        }
+        if let lens = summary.lens {
+            lines.append("\(L10n.string("photo.lens", fallback: "Lens")): \(lens)")
+        }
+        if let pixelDimensions = summary.pixelDimensions {
+            lines.append("\(L10n.string("photo.dimensions", fallback: "Dimensions")): \(pixelDimensions)")
+        }
+        if let iso = summary.iso {
+            lines.append("\(L10n.string("photo.iso", fallback: "ISO")): \(iso)")
+        }
+        if let focalLength = summary.focalLength {
+            lines.append("\(L10n.string("photo.focalLength", fallback: "Focal Length")): \(focalLength)")
+        }
+        if let aperture = summary.aperture {
+            lines.append("\(L10n.string("photo.aperture", fallback: "Aperture")): \(aperture)")
+        }
+        if let shutterSpeed = summary.shutterSpeed {
+            lines.append("\(L10n.string("photo.shutterSpeed", fallback: "Shutter")): \(shutterSpeed)")
+        }
+        return lines
     }
 
     private func kindLabel(for item: FileItem) -> String {

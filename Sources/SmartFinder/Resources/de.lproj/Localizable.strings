@@ -25,6 +25,12 @@
 
 "status.loading" = "Wird geladen";
 "status.compressing" = "Komprimieren";
+"status.calculatingFolderSize" = "Ordnergröße wird berechnet";
+"status.folderSizeResult" = "%@: %@, %d Dateien";
+"status.folderSizeCancelled" = "Ordnergrößenberechnung abgebrochen";
+"status.ejectingVolume" = "%@ wird ausgeworfen...";
+"status.ejectedVolume" = "%@ ausgeworfen";
+"status.ejectVolumeFailed" = "%@ konnte nicht ausgeworfen werden: %@";
 "status.items.one" = "%d Objekt";
 "status.items.other" = "%d Objekte";
 "status.selected" = ", %d ausgewählt";
@@ -71,6 +77,7 @@
 "menu.display.fileExtensions" = "Dateinamenerweiterungen";
 "menu.display.itemCheckboxes" = "Objekt-Auswahlfelder";
 "menu.display.detailsPane" = "Detailbereich";
+"menu.display.dualPane" = "Doppelansicht";
 "menu.tags.add" = "Tag hinzufügen...";
 "menu.tags.red" = "Rot";
 "menu.tags.orange" = "Orange";
@@ -97,6 +104,8 @@
 "menu.copyParentPath" = "Übergeordneten Pfad kopieren";
 "menu.copyShellPath" = "Als Shell-Pfad kopieren";
 "menu.compress" = "Komprimieren";
+"menu.calculateFolderSize" = "Ordnergröße berechnen";
+"menu.cancelFolderSizeCalculation" = "Größenberechnung abbrechen";
 "menu.paste" = "Einfügen";
 "menu.revealInFinder" = "Im Finder anzeigen";
 
@@ -107,6 +116,13 @@
 "info.where" = "Ort";
 "info.created" = "Erstellt";
 "info.modified" = "Geändert";
+"photo.camera" = "Kamera";
+"photo.lens" = "Objektiv";
+"photo.dimensions" = "Abmessungen";
+"photo.iso" = "ISO";
+"photo.focalLength" = "Brennweite";
+"photo.aperture" = "Blende";
+"photo.shutterSpeed" = "Verschluss";
 
 "dialog.newFolder.title" = "Neuer Ordner";
 "dialog.newFolder.message" = "Namen für den neuen Ordner eingeben.";

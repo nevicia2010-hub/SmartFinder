@@ -25,6 +25,12 @@
 
 "status.loading" = "正在载入";
 "status.compressing" = "正在压缩";
+"status.calculatingFolderSize" = "正在计算文件夹大小";
+"status.folderSizeResult" = "%@：%@，%d 个文件";
+"status.folderSizeCancelled" = "已取消文件夹大小计算";
+"status.ejectingVolume" = "正在推出 %@...";
+"status.ejectedVolume" = "已推出 %@";
+"status.ejectVolumeFailed" = "无法推出 %@：%@";
 "status.items.one" = "%d 个项目";
 "status.items.other" = "%d 个项目";
 "status.selected" = "，已选择 %d 项";
@@ -71,6 +77,7 @@
 "menu.display.fileExtensions" = "文件扩展名";
 "menu.display.itemCheckboxes" = "项目复选框";
 "menu.display.detailsPane" = "详细信息窗格";
+"menu.display.dualPane" = "双栏";
 "menu.tags.add" = "添加标签...";
 "menu.tags.red" = "红色";
 "menu.tags.orange" = "橙色";
@@ -97,6 +104,8 @@
 "menu.copyParentPath" = "复制上级路径";
 "menu.copyShellPath" = "复制为 Shell 路径";
 "menu.compress" = "压缩";
+"menu.calculateFolderSize" = "计算文件夹大小";
+"menu.cancelFolderSizeCalculation" = "取消大小计算";
 "menu.paste" = "粘贴";
 "menu.revealInFinder" = "在 Finder 中显示";
 
@@ -107,6 +116,13 @@
 "info.where" = "位置";
 "info.created" = "创建时间";
 "info.modified" = "修改时间";
+"photo.camera" = "相机";
+"photo.lens" = "镜头";
+"photo.dimensions" = "尺寸";
+"photo.iso" = "ISO";
+"photo.focalLength" = "焦距";
+"photo.aperture" = "光圈";
+"photo.shutterSpeed" = "快门";
 
 "dialog.newFolder.title" = "新建文件夹";
 "dialog.newFolder.message" = "输入新文件夹名称。";

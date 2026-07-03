@@ -122,6 +122,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     private let directoryStore = DirectoryStore()
     private let fileOperations = FileOperations()
     private let fileInfoProvider = FileInfoProvider()
+    private let folderSizeCalculator = FolderSizeCalculator()
     private let visualIconProvider = VisualIconProvider()
     private let thumbnailPipeline = ThumbnailPipeline()
     private let quickLookController = QuickLookController()
@@ -153,6 +154,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     private var showsFileExtensions = true
     private var showsSelectionCheckboxes = false
     private var suppressColumnSelectionChange = false
+    private var folderSizeCancellationToken: FolderSizeCancellationToken?
 
     override func loadView() {
         let layout = NSCollectionViewFlowLayout()
@@ -404,6 +406,19 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
 
     func selectedItemCount() -> Int {
         selectedItems().count
+    }
+
+    func selectedFolderCount() -> Int {
+        selectedItems().filter(\.isDirectory).count
+    }
+
+    func hasSingleSelectedFolder() -> Bool {
+        let items = selectedItems()
+        return items.count == 1 && items[0].isDirectory
+    }
+
+    func isFolderSizeCalculationRunning() -> Bool {
+        folderSizeCancellationToken != nil
     }
 
     func currentFolder() -> URL? {
@@ -1060,6 +1075,57 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         }
     }
 
+    func calculateSelectedFolderSize() {
+        guard let item = selectedItems().first,
+              selectedItems().count == 1,
+              item.isDirectory else {
+            return
+        }
+
+        folderSizeCancellationToken?.cancel()
+        let cancellationToken = FolderSizeCancellationToken()
+        folderSizeCancellationToken = cancellationToken
+        updateStatus(prefix: L10n.string("status.calculatingFolderSize", fallback: "Calculating folder size"))
+
+        DispatchQueue.global(qos: .utility).async { [folderSizeCalculator] in
+            let result = Result { try folderSizeCalculator.calculateSize(of: item.url, cancellationToken: cancellationToken) }
+            DispatchQueue.main.async { [weak self] in
+                guard let self,
+                      self.folderSizeCancellationToken === cancellationToken else {
+                    return
+                }
+                self.folderSizeCancellationToken = nil
+                switch result {
+                case .success(let sizeResult):
+                    let sizeText = self.byteFormatter.string(fromByteCount: sizeResult.byteSize)
+                    self.onStatusChange?(
+                        L10n.format(
+                            "status.folderSizeResult",
+                            fallback: "%@: %@, %d files",
+                            item.name,
+                            sizeText,
+                            sizeResult.fileCount
+                        )
+                    )
+                case .failure(FolderSizeCalculationError.cancelled):
+                    self.onStatusChange?(L10n.string("status.folderSizeCancelled", fallback: "Folder size calculation cancelled"))
+                case .failure(let error):
+                    self.showOperationError(error)
+                    self.updateStatus()
+                }
+            }
+        }
+    }
+
+    func cancelFolderSizeCalculation() {
+        guard let folderSizeCancellationToken else {
+            return
+        }
+        folderSizeCancellationToken.cancel()
+        self.folderSizeCancellationToken = nil
+        onStatusChange?(L10n.string("status.folderSizeCancelled", fallback: "Folder size calculation cancelled"))
+    }
+
     func showInfoForSelection() {
         let urls = selectedItems().map(\.url)
         guard let firstURL = urls.first else {
@@ -1180,6 +1246,14 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
 
     @objc private func compressFromMenu() {
         compressSelection()
+    }
+
+    @objc private func calculateFolderSizeFromMenu() {
+        calculateSelectedFolderSize()
+    }
+
+    @objc private func cancelFolderSizeCalculationFromMenu() {
+        cancelFolderSizeCalculation()
     }
 
     @objc private func getInfoFromMenu() {
@@ -1692,6 +1766,8 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         menu.addItem(menuItem("menu.copyParentPath", fallback: "Copy Parent Path", action: #selector(copyParentPathFromMenu), enabled: hasSelection))
         menu.addItem(menuItem("menu.copyShellPath", fallback: "Copy as Shell Path", action: #selector(copyShellPathFromMenu), enabled: hasSelection))
         menu.addItem(menuItem("menu.compress", fallback: "Compress", action: #selector(compressFromMenu), enabled: hasSelection))
+        menu.addItem(menuItem("menu.calculateFolderSize", fallback: "Calculate Folder Size", action: #selector(calculateFolderSizeFromMenu), enabled: hasSingleSelectedFolder()))
+        menu.addItem(menuItem("menu.cancelFolderSizeCalculation", fallback: "Cancel Size Calculation", action: #selector(cancelFolderSizeCalculationFromMenu), enabled: isFolderSizeCalculationRunning()))
         menu.addItem(menuItem("menu.paste", fallback: "Paste", action: #selector(pasteFromMenu), enabled: currentFolderURL != nil))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(menuItem("menu.revealInFinder", fallback: "Reveal in Finder", action: #selector(revealInFinderFromMenu), enabled: hasSelection || currentFolderURL != nil))

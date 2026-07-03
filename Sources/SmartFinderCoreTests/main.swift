@@ -164,6 +164,18 @@ expect(
     mountedVolumeLocations.allSatisfy(\.isEjectable),
     "mounted /Volumes sidebar entries should expose eject affordances"
 )
+expect(
+    VolumeEjectFeedback.message(for: .started, volumeName: "CameraSSD") == "Ejecting CameraSSD...",
+    "eject feedback should announce when a volume eject starts"
+)
+expect(
+    VolumeEjectFeedback.message(for: .succeeded, volumeName: "CameraSSD") == "Ejected CameraSSD",
+    "eject feedback should announce when a volume eject succeeds"
+)
+expect(
+    VolumeEjectFeedback.message(for: .failed(errorDescription: "Busy"), volumeName: "CameraSSD") == "Could not eject CameraSSD: Busy",
+    "eject feedback should include failure details"
+)
 
 let volumeRefreshPolicy = MountedVolumeSidebarRefreshPolicy()
 expect(
@@ -265,6 +277,28 @@ expect(fileInfo.fileExtension == "pdf", "file info should expose file extension"
 expect(fileInfo.category == .document, "file info should classify documents")
 expect(fileInfo.byteSize == 8, "file info should include byte size")
 expect(!fileInfo.isDirectory, "file info should distinguish regular files")
+let photoMetadata = PhotoMetadataSummary(properties: [
+    "PixelWidth": 8192,
+    "PixelHeight": 5464,
+    "{TIFF}": [
+        "Make": "Canon",
+        "Model": "EOS R5"
+    ],
+    "{Exif}": [
+        "LensModel": "RF24-70mm F2.8 L IS USM",
+        "ISOSpeedRatings": [400],
+        "FocalLength": 50.0,
+        "FNumber": 2.8,
+        "ExposureTime": 0.005
+    ]
+])
+expect(photoMetadata.camera == "Canon EOS R5", "photo metadata should combine camera make and model")
+expect(photoMetadata.lens == "RF24-70mm F2.8 L IS USM", "photo metadata should expose lens model")
+expect(photoMetadata.pixelDimensions == "8192 x 5464", "photo metadata should expose pixel dimensions")
+expect(photoMetadata.iso == "ISO 400", "photo metadata should expose ISO")
+expect(photoMetadata.focalLength == "50 mm", "photo metadata should format focal length")
+expect(photoMetadata.aperture == "f/2.8", "photo metadata should format aperture")
+expect(photoMetadata.shutterSpeed == "1/200 s", "photo metadata should format shutter speed")
 
 let archiveSource = operationsDirectory.appendingPathComponent("archive-source.txt")
 try "archive-me".write(to: archiveSource, atomically: true, encoding: .utf8)
@@ -350,6 +384,22 @@ let summaryItems = [
 ]
 expect(SelectionSummary.totalFileByteSize(for: summaryItems) == 25, "selection summary should total only known file byte sizes")
 expect(SelectionSummary.fileNames(for: summaryItems) == ["a.txt", "b.txt", "folder"], "selection summary should expose selected file names")
+let sizeRoot = try fileOperations.createFolder(named: "Size Root", in: operationsDirectory)
+let sizeChild = try fileOperations.createFolder(named: "Nested", in: sizeRoot)
+try "12345".write(to: sizeRoot.appendingPathComponent("a.txt"), atomically: true, encoding: .utf8)
+try "1234567".write(to: sizeChild.appendingPathComponent("b.txt"), atomically: true, encoding: .utf8)
+let folderSizeResult = try FolderSizeCalculator().calculateSize(of: sizeRoot)
+expect(folderSizeResult.byteSize == 12, "folder size calculator should total nested regular files on demand")
+expect(folderSizeResult.fileCount == 2, "folder size calculator should count nested files")
+expect(folderSizeResult.folderCount == 1, "folder size calculator should count nested folders")
+let folderSizeCancellation = FolderSizeCancellationToken()
+folderSizeCancellation.cancel()
+do {
+    _ = try FolderSizeCalculator().calculateSize(of: sizeRoot, cancellationToken: folderSizeCancellation)
+    expect(false, "folder size calculation should throw after cancellation")
+} catch FolderSizeCalculationError.cancelled {
+    expect(true, "folder size calculation should support cancellation")
+}
 
 var navigationHistory = NavigationHistory()
 let navA = URL(fileURLWithPath: "/tmp/A", isDirectory: true)
@@ -454,6 +504,20 @@ expect(
     menuSpecs.flatMap(\.items).contains { $0.action == .copyParentPath } &&
     menuSpecs.flatMap(\.items).contains { $0.action == .copyShellPath },
     "menu bar should expose enhanced copy-path formats"
+)
+expect(
+    menuSpecs.flatMap(\.items).contains { $0.action == .calculateFolderSize } &&
+    menuSpecs.flatMap(\.items).contains { $0.action == .dualPane },
+    "menu bar should expose on-demand folder size and dual pane controls"
+)
+expect(
+    DualPanePolicy.shouldLoadSecondaryPane(wasVisible: false, isVisible: true, hasLoadedSecondaryPane: false),
+    "dual pane should load the secondary pane only when first opened"
+)
+expect(
+    !DualPanePolicy.shouldLoadSecondaryPane(wasVisible: false, isVisible: false, hasLoadedSecondaryPane: false) &&
+    !DualPanePolicy.shouldLoadSecondaryPane(wasVisible: true, isVisible: true, hasLoadedSecondaryPane: true),
+    "dual pane should avoid background secondary loading"
 )
 
 expect(SmartFinderCoreBootstrap.isAvailable, "core module should load")
