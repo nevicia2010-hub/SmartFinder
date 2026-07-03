@@ -2,6 +2,14 @@
 
 ## 2026-07-03
 
+### Public Documentation Audit
+
+- Reviewed the live GitHub repository README, release notes, repository description, and localization resources.
+- Clarified the public tool definition: SmartFinder is a free, open-source Finder companion, MIT-licensed, and not a commercial file manager.
+- Added a bilingual first-launch security notice explaining that the app is ad-hoc signed, not Apple Developer ID signed, and not Apple-notarized.
+- Confirmed the README explains the core purpose, selective thumbnail strategy, Finder boundary, system requirements, supported UI languages, packaging, and resource-use approach.
+- Confirmed all UI localization files parse correctly and share the same key set across English, Simplified Chinese, Traditional Chinese, Japanese, Korean, German, French, Spanish, Italian, and Portuguese.
+
 ### Convenience Pass Two
 
 - Added status-bar feedback for mounted-volume eject actions, including started, succeeded, and failed states.
@@ -55,7 +63,8 @@
 
 ### Version And Packaging
 
-- Next packaged DMG: `SmartFinder-0.8.9.dmg`
+- Current released DMG: `SmartFinder-0.8.9.dmg`
+- Latest tag: `v0.8.9`
 
 ## 2026-07-02
 

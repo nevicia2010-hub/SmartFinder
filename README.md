@@ -1,14 +1,20 @@
 # SmartFinder for Mac
 
-A lightweight macOS Finder companion for selective thumbnails: real previews for photos and RAW files, clean system icons for documents, archives, and code.
+A free, open-source macOS Finder companion for selective thumbnails: real previews for photos and RAW files, clean system icons for documents, archives, and code.
 
-SmartFinder is a native macOS folder browser for people who want Finder-like navigation with more predictable thumbnails.
+SmartFinder is a native macOS folder browser for people who want Finder-like navigation with more predictable thumbnails. It is MIT-licensed and built as a small personal utility, not a commercial file manager.
 
 Finder can show file previews, but it does not offer a simple rule like "show thumbnails for photos, but keep PDFs, spreadsheets, archives, and code as clean system icons." SmartFinder fills that gap. It makes image, RAW photo, and video-heavy folders easier to scan while keeping mixed work folders lightweight and readable.
 
 SmartFinder is not a system Finder replacement. It does not replace the Desktop, file picker, Spotlight, iCloud Drive, or "Show in Finder" behavior. It is a companion window for folders where Finder's thumbnail behavior gets in the way.
 
 Requires macOS 13 Ventura or later.
+
+## Security Notice
+
+SmartFinder is free and open source. The downloadable app is ad-hoc signed for local distribution, but it is not Apple Developer ID signed or Apple-notarized. On first launch, macOS Gatekeeper may show the standard "unidentified developer" warning. Right-click `SmartFinder.app` and choose Open, or allow it in System Settings > Privacy & Security.
+
+中文说明：SmartFinder 是免费开源工具，目前没有进行 Apple 官方公证。首次打开时 macOS 可能会提示无法验证开发者。请右键点击 `SmartFinder.app` 选择“打开”，或在“系统设置 > 隐私与安全性”中允许打开。
 
 ![SmartFinder demo icon view](docs/screenshots/smartfinder-demo.png)
 
@@ -108,7 +114,7 @@ The script creates:
 - `.build/package/SmartFinder.app`
 - `dist/SmartFinder-0.8.9.dmg`
 
-The app is ad-hoc signed for local use. It is not Apple Developer ID signed or notarized, so macOS may show the standard warning the first time it is opened on another machine.
+The app is ad-hoc signed for local use. See Security Notice above for the first-launch Gatekeeper warning on other Macs.
 
 ## Install from DMG
 
@@ -137,7 +143,7 @@ SmartFinder is intentionally selective about content thumbnails:
 
 ## Localizations
 
-SmartFinder currently includes UI localizations for:
+SmartFinder currently includes UI localizations for the following system languages. The app follows the current macOS language where a translation is available:
 
 - English
 - Simplified Chinese
