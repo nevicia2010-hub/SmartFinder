@@ -199,6 +199,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
     private var secondaryFolderURL: URL?
     private var currentSelection: [FileItem] = []
     private var mountedVolumeNotificationObservers: [NSObjectProtocol] = []
+    private var pendingMountedVolumeSidebarRefreshes: [DispatchWorkItem] = []
     private var appearanceNotificationObservers: [NSObjectProtocol] = []
     private var appearanceRefreshScheduled = false
 
@@ -242,6 +243,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         for observer in mountedVolumeNotificationObservers {
             notificationCenter.removeObserver(observer)
         }
+        cancelPendingMountedVolumeSidebarRefreshes()
         let distributedNotificationCenter = DistributedNotificationCenter.default()
         for observer in appearanceNotificationObservers {
             distributedNotificationCenter.removeObserver(observer)
@@ -1109,17 +1111,48 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
     }
 
     private func handleMountedVolumeNotification(_ notification: Notification) {
-        guard mountedVolumeRefreshPolicy.shouldRefreshSidebar(forNotificationNamed: notification.name.rawValue) else {
+        let refreshPasses = mountedVolumeRefreshPolicy.sidebarRefreshPasses(forNotificationNamed: notification.name.rawValue)
+        guard !refreshPasses.isEmpty else {
             return
         }
 
-        if notification.name.rawValue == "NSWorkspaceDidUnmountNotification",
+        if isVolumeRemovalNotification(notification.name.rawValue),
            let volumeURL = notification.userInfo?[NSWorkspace.volumeURLUserInfoKey] as? URL,
            currentPathIsInside(volumeURL) {
             navigate(to: FileManager.default.homeDirectoryForCurrentUser, recordHistory: true)
         }
 
-        reloadSidebar()
+        scheduleMountedVolumeSidebarRefreshes(refreshPasses)
+    }
+
+    private func isVolumeRemovalNotification(_ notificationName: String) -> Bool {
+        notificationName == "NSWorkspaceWillUnmountNotification" ||
+            notificationName == "NSWorkspaceDidUnmountNotification"
+    }
+
+    private func scheduleMountedVolumeSidebarRefreshes(_ passes: [MountedVolumeSidebarRefreshPass]) {
+        cancelPendingMountedVolumeSidebarRefreshes()
+
+        pendingMountedVolumeSidebarRefreshes = passes.map { pass in
+            let workItem = DispatchWorkItem { [weak self] in
+                self?.reloadSidebar()
+            }
+
+            if pass.delay <= 0 {
+                workItem.perform()
+            } else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + pass.delay, execute: workItem)
+            }
+
+            return workItem
+        }
+    }
+
+    private func cancelPendingMountedVolumeSidebarRefreshes() {
+        for workItem in pendingMountedVolumeSidebarRefreshes {
+            workItem.cancel()
+        }
+        pendingMountedVolumeSidebarRefreshes.removeAll()
     }
 
     private func startObservingAppearanceChanges() {

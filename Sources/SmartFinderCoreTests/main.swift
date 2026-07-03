@@ -187,8 +187,20 @@ expect(
     "unmount notifications should refresh the mounted-volume sidebar while the window is open"
 )
 expect(
+    volumeRefreshPolicy.shouldRefreshSidebar(forNotificationNamed: "NSWorkspaceWillUnmountNotification"),
+    "will-unmount notifications should refresh the mounted-volume sidebar before installer disk images disappear"
+)
+expect(
     volumeRefreshPolicy.shouldRefreshSidebar(forNotificationNamed: "NSWorkspaceDidRenameVolumeNotification"),
     "volume rename notifications should refresh the mounted-volume sidebar while the window is open"
+)
+expect(
+    volumeRefreshPolicy.sidebarRefreshPasses(forNotificationNamed: "NSWorkspaceDidUnmountNotification").map(\.delay) == [0, 0.4, 1.2],
+    "disk-image unmount notifications should schedule immediate and delayed sidebar refresh passes"
+)
+expect(
+    volumeRefreshPolicy.sidebarRefreshPasses(forNotificationNamed: "NSWorkspaceDidWakeNotification").isEmpty,
+    "unrelated workspace notifications should not schedule sidebar refresh passes"
 )
 expect(
     !volumeRefreshPolicy.shouldRefreshSidebar(forNotificationNamed: "NSWorkspaceDidWakeNotification"),

@@ -2,6 +2,14 @@
 
 ## 2026-07-03
 
+### Disk Image Sidebar Refresh Fix
+
+- Fixed a sidebar refresh gap observed after opening and exiting macOS installer disk images.
+- Added `NSWorkspaceWillUnmountNotification` to the mounted-volume refresh policy so SmartFinder reacts before virtual installer volumes disappear.
+- Changed mounted-volume notifications to schedule immediate and delayed sidebar refresh passes at 0, 0.4, and 1.2 seconds.
+- This keeps refresh work event-driven and avoids background scanning while giving macOS time to settle the mounted-volume list after DMG attach/detach operations.
+- Added core regression coverage for installer-style will-unmount notifications and delayed refresh scheduling.
+
 ### Public Documentation Audit
 
 - Reviewed the live GitHub repository README, release notes, repository description, and localization resources.
@@ -63,8 +71,8 @@
 
 ### Version And Packaging
 
-- Current released DMG: `SmartFinder-0.8.9.dmg`
-- Latest tag: `v0.8.9`
+- Current released DMG: `SmartFinder-0.8.10.dmg`
+- Latest tag: `v0.8.10`
 
 ## 2026-07-02
 
