@@ -248,6 +248,9 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         gridController.onOpenFolder = { [weak self] url in
             self?.navigate(to: url, recordHistory: true)
         }
+        gridController.onColumnFolderChange = { [weak self] url in
+            self?.updateLocation(to: url, recordHistory: true, clearsSearch: true)
+        }
         gridController.onStatusChange = { [weak self] status in
             self?.statusField.stringValue = status
             self?.updateSelectionToolbarButtons()
@@ -1204,15 +1207,21 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
     }
 
     private func navigate(to url: URL, recordHistory: Bool) {
+        updateLocation(to: url, recordHistory: recordHistory, clearsSearch: true)
+        gridController.applyFilter("")
+        gridController.load(folderURL: url)
+    }
+
+    private func updateLocation(to url: URL, recordHistory: Bool, clearsSearch: Bool) {
         if recordHistory {
             navigationHistory.record(url)
         }
         pathField.stringValue = url.path
         toolbarTitleField.stringValue = title(for: url)
         updateBreadcrumbs(for: url)
-        searchField.stringValue = ""
-        gridController.applyFilter("")
-        gridController.load(folderURL: url)
+        if clearsSearch {
+            searchField.stringValue = ""
+        }
         updateNavigationButtons()
     }
 

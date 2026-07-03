@@ -114,6 +114,7 @@ final class SmartTableView: NSTableView {
 
 final class FileGridViewController: NSViewController, NSCollectionViewDataSource, NSCollectionViewDelegate, NSCollectionViewDelegateFlowLayout, NSTableViewDataSource, NSTableViewDelegate, SmartCollectionViewKeyDelegate {
     var onOpenFolder: ((URL) -> Void)?
+    var onColumnFolderChange: ((URL) -> Void)?
     var onStatusChange: ((String) -> Void)?
     var onSelectionChange: (([FileItem]) -> Void)?
     var onKeyboardShortcut: ((FinderKeyboardShortcut) -> Bool)?
@@ -142,6 +143,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     private var displayedItems: [FileItem] = []
     private var columnFolders: [ColumnFolder] = []
     private var columnTables: [SmartTableView] = []
+    private var columnNavigationToken = UUID()
     private var filterText = ""
     private var iconSize: CGFloat = 96
     private var sortMode: FileSortMode = .name
@@ -251,6 +253,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     }
 
     func load(folderURL: URL) {
+        columnNavigationToken = UUID()
         currentFolderURL = folderURL
         allItems = []
         displayedItems = []
@@ -1155,6 +1158,12 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     }
 
     private func applyCurrentFilter() {
+        updateDisplayedItems()
+        reloadViews()
+        updateStatus()
+    }
+
+    private func updateDisplayedItems() {
         let query = filterText.trimmingCharacters(in: .whitespacesAndNewlines)
         if query.isEmpty {
             displayedItems = sortedItems(allItems)
@@ -1163,8 +1172,6 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
                 $0.name.localizedCaseInsensitiveContains(query)
             })
         }
-        reloadViews()
-        updateStatus()
     }
 
     private func sortedItems(_ items: [FileItem]) -> [FileItem] {
@@ -1471,9 +1478,90 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
 
         let item = items[selectedRow]
         if item.isDirectory {
-            onOpenFolder?(item.url)
+            navigateColumn(to: item.url, selectedFromColumnIndex: columnIndex)
         } else {
             updateStatus()
+        }
+    }
+
+    private func navigateColumn(to folderURL: URL, selectedFromColumnIndex columnIndex: Int) {
+        guard columnFolders.indices.contains(columnIndex) else {
+            return
+        }
+
+        let token = UUID()
+        columnNavigationToken = token
+        currentFolderURL = folderURL
+        filterText = ""
+        allItems = []
+        displayedItems = []
+
+        let selectedColumn = ColumnFolder(
+            url: columnFolders[columnIndex].url,
+            items: columnFolders[columnIndex].items,
+            selectedURL: folderURL
+        )
+        let nextColumn = ColumnFolder(
+            url: folderURL,
+            items: [],
+            selectedURL: nil
+        )
+        columnFolders = ColumnViewSelectionUpdate.replaceTrailingColumns(
+            in: columnFolders,
+            selectedColumnIndex: columnIndex,
+            selectedColumn: selectedColumn,
+            nextColumn: nextColumn
+        )
+        rebuildColumnTables()
+        onColumnFolderChange?(folderURL)
+        updateStatus(prefix: L10n.string("status.loading", fallback: "Loading"))
+
+        let options = DirectoryLoadOptions(includesHiddenItems: includesHiddenItems)
+        DispatchQueue.global(qos: .userInitiated).async { [directoryStore] in
+            let result = Result { try directoryStore.loadItems(in: folderURL, options: options) }
+            DispatchQueue.main.async { [weak self] in
+                guard let self,
+                      self.columnNavigationToken == token,
+                      self.currentFolderURL == folderURL else {
+                    return
+                }
+
+                switch result {
+                case .success(let items):
+                    self.allItems = items
+                    self.updateDisplayedItems()
+                    let loadedNextColumn = ColumnFolder(
+                        url: folderURL,
+                        items: self.displayedItems,
+                        selectedURL: nil
+                    )
+                    self.columnFolders = ColumnViewSelectionUpdate.replaceTrailingColumns(
+                        in: self.columnFolders,
+                        selectedColumnIndex: columnIndex,
+                        selectedColumn: selectedColumn,
+                        nextColumn: loadedNextColumn
+                    )
+                    self.rebuildColumnTables()
+                    self.updateStatus()
+                case .failure(let error):
+                    self.allItems = []
+                    self.displayedItems = []
+                    self.columnFolders = ColumnViewSelectionUpdate.replaceTrailingColumns(
+                        in: self.columnFolders,
+                        selectedColumnIndex: columnIndex,
+                        selectedColumn: selectedColumn,
+                        nextColumn: nextColumn
+                    )
+                    self.rebuildColumnTables()
+                    self.onStatusChange?(
+                        L10n.format(
+                            "error.cannotReadFolder",
+                            fallback: "Cannot read folder: %@",
+                            error.localizedDescription
+                        )
+                    )
+                }
+            }
         }
     }
 

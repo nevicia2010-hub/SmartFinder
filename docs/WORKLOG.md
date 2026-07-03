@@ -2,6 +2,13 @@
 
 ## 2026-07-03
 
+### Column View Local Navigation
+
+- Changed column-view folder selection to update the right-side columns in place instead of running a full folder reload.
+- The path field, title, breadcrumb, and history still update when a folder is selected in column view.
+- This avoids the visible whole-window flash caused by clearing all items before loading the selected folder.
+- Added core coverage for replacing stale right-side columns while preserving the left-side column stack.
+
 ### System Appearance Refresh
 
 - Added a lightweight system appearance refresh path for automatic light/dark mode changes.
@@ -31,7 +38,7 @@
 
 ### Version And Packaging
 
-- Next packaged DMG: `SmartFinder-0.8.6.dmg`
+- Next packaged DMG: `SmartFinder-0.8.7.dmg`
 
 ## 2026-07-02
 

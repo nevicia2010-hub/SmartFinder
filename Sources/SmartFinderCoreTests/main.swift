@@ -212,6 +212,16 @@ expect(
     columnPath.map { $0.selectedURL?.path ?? "" } == ["/Users", "/Users/bingwang", "/Users/bingwang/Pictures", "/Users/bingwang/Pictures/RAW", ""],
     "column view path should select the next folder in each parent column"
 )
+let replacedColumnNames = ColumnViewSelectionUpdate.replaceTrailingColumns(
+    in: ["root", "Users", "old-home", "old-child"],
+    selectedColumnIndex: 1,
+    selectedColumn: "Users-selected",
+    nextColumn: "bingwang"
+)
+expect(
+    replacedColumnNames == ["root", "Users-selected", "bingwang"],
+    "column view selection should preserve left columns and replace stale right-side columns"
+)
 let columnLayout = ColumnViewLayoutMetrics.layout(columnCount: 3, columnWidth: 260, viewportHeight: 720)
 expect(
     columnLayout.documentWidth == 780 && columnLayout.documentHeight == 720,
