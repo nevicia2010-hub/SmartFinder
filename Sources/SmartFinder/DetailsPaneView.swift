@@ -47,6 +47,13 @@ final class DetailsPaneView: NSVisualEffectView {
         bodyField.stringValue = detailsText(for: item)
     }
 
+    func refreshAppearance() {
+        titleField.textColor = .labelColor
+        subtitleField.textColor = .secondaryLabelColor
+        bodyField.textColor = .secondaryLabelColor
+        needsDisplay = true
+    }
+
     private func setup() {
         byteFormatter.allowedUnits = [.useKB, .useMB, .useGB, .useTB]
         byteFormatter.countStyle = .file

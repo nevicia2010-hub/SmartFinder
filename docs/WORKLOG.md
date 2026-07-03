@@ -2,6 +2,12 @@
 
 ## 2026-07-03
 
+### System Appearance Refresh
+
+- Added a lightweight system appearance refresh path for automatic light/dark mode changes.
+- SmartFinder now listens for macOS interface theme changes and effective appearance updates on the main window.
+- The refresh only reapplies visible UI colors, toolbar symbols, active cells, lists, columns, and the details pane; it does not rescan folders or regenerate thumbnails.
+
 ### Column View Stability Fix
 
 - Fixed a column-view crash where switching into column view could trigger an AppKit layout exception and leave the window unusable.
@@ -25,7 +31,7 @@
 
 ### Version And Packaging
 
-- Next packaged DMG: `SmartFinder-0.8.5.dmg`
+- Next packaged DMG: `SmartFinder-0.8.6.dmg`
 
 ## 2026-07-02
 

@@ -38,6 +38,11 @@ private final class FinderToolbarButton: NSButton {
         updateCaptionColor()
     }
 
+    func refreshAppearance() {
+        refreshImage()
+        updateCaptionColor()
+    }
+
     private func refreshImage() {
         if let image = Self.symbol(symbolName, description: fallbackTitle, enabled: isEnabled) {
             self.image = image
@@ -64,6 +69,15 @@ private final class FinderToolbarButton: NSButton {
         )
         image?.isTemplate = false
         return image
+    }
+}
+
+private final class AppearanceRefreshView: NSView {
+    var onEffectiveAppearanceChange: (() -> Void)?
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        onEffectiveAppearanceChange?()
     }
 }
 
@@ -146,6 +160,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
     private let toolbarTitleField = NSTextField(labelWithString: "")
     private let detailsPane = DetailsPaneView()
     private let mountedVolumeRefreshPolicy = MountedVolumeSidebarRefreshPolicy()
+    private let appearanceRefreshPolicy = AppearanceRefreshPolicy()
     private lazy var shareButton = toolbarIconButton(
         symbolName: "square.and.arrow.up",
         fallbackTitle: L10n.string("toolbar.share", fallback: "Share"),
@@ -176,6 +191,8 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
     private weak var displayMenuContainer: NSView?
     private var detailsPaneVisible = false
     private var mountedVolumeNotificationObservers: [NSObjectProtocol] = []
+    private var appearanceNotificationObservers: [NSObjectProtocol] = []
+    private var appearanceRefreshScheduled = false
 
     private struct SidebarLocation {
         let name: String
@@ -204,6 +221,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
 
         setupContent()
         startObservingMountedVolumeChanges()
+        startObservingAppearanceChanges()
         navigate(to: startURL, recordHistory: true)
     }
 
@@ -215,6 +233,10 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         let notificationCenter = NSWorkspace.shared.notificationCenter
         for observer in mountedVolumeNotificationObservers {
             notificationCenter.removeObserver(observer)
+        }
+        let distributedNotificationCenter = DistributedNotificationCenter.default()
+        for observer in appearanceNotificationObservers {
+            distributedNotificationCenter.removeObserver(observer)
         }
     }
 
@@ -237,7 +259,10 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             self?.handleWindowKeyboardShortcut(shortcut) ?? false
         }
 
-        let contentView = NSView()
+        let contentView = AppearanceRefreshView()
+        contentView.onEffectiveAppearanceChange = { [weak self] in
+            self?.scheduleAppearanceRefresh()
+        }
         contentView.translatesAutoresizingMaskIntoConstraints = false
         window.contentView = contentView
 
@@ -979,6 +1004,82 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         }
 
         reloadSidebar()
+    }
+
+    private func startObservingAppearanceChanges() {
+        let notificationCenter = DistributedNotificationCenter.default()
+        appearanceNotificationObservers = [
+            notificationCenter.addObserver(
+                forName: Notification.Name(AppearanceRefreshPolicy.interfaceThemeChangedNotificationName),
+                object: nil,
+                queue: .main
+            ) { [weak self] notification in
+                self?.handleAppearanceNotification(notification)
+            }
+        ]
+    }
+
+    private func handleAppearanceNotification(_ notification: Notification) {
+        guard appearanceRefreshPolicy.shouldRefreshAppearance(forNotificationNamed: notification.name.rawValue) else {
+            return
+        }
+        scheduleAppearanceRefresh()
+    }
+
+    private func scheduleAppearanceRefresh() {
+        guard !appearanceRefreshScheduled else {
+            return
+        }
+        appearanceRefreshScheduled = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else {
+                return
+            }
+            self.appearanceRefreshScheduled = false
+            self.refreshAppearance()
+        }
+    }
+
+    private func refreshAppearance() {
+        toolbarTitleField.textColor = .labelColor
+        statusField.textColor = .secondaryLabelColor
+        updateNavigationButtons()
+        refreshViewModeControlImages()
+        refreshToolbarButtonImages(in: window?.contentView)
+        if !pathField.stringValue.isEmpty {
+            updateBreadcrumbs(for: URL(fileURLWithPath: pathField.stringValue, isDirectory: true))
+        }
+        gridController.refreshAppearance()
+        detailsPane.refreshAppearance()
+        window?.contentView?.needsDisplay = true
+    }
+
+    private func refreshToolbarButtonImages(in view: NSView?) {
+        guard let view else {
+            return
+        }
+        if let button = view as? FinderToolbarButton {
+            button.refreshAppearance()
+        }
+        for subview in view.subviews {
+            refreshToolbarButtonImages(in: subview)
+        }
+    }
+
+    private func refreshViewModeControlImages() {
+        let titles = [
+            L10n.string("menu.display.iconView", fallback: "Icon View"),
+            L10n.string("menu.display.listView", fallback: "List View"),
+            L10n.string("menu.display.columnView", fallback: "Column View")
+        ]
+        let symbols = ["square.grid.2x2", "list.bullet", "rectangle.split.3x1"]
+
+        for index in 0..<min(viewModeControl.segmentCount, symbols.count) {
+            if let image = toolbarSymbol(symbols[index], description: titles[index]) {
+                viewModeControl.setImage(image, forSegment: index)
+            }
+        }
+        updateViewModeControlSelection()
     }
 
     private func addSidebarHeader(_ title: String, to stack: NSStackView) {

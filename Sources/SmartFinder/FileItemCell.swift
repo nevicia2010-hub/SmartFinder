@@ -12,6 +12,7 @@ final class FileItemCell: NSCollectionViewItem {
     private var iconWidthConstraint: NSLayoutConstraint?
     private var iconHeightConstraint: NSLayoutConstraint?
     private var onCheckboxToggle: ((URL) -> Void)?
+    private var currentFinderLabelNumber = 0
 
     override func loadView() {
         view = NSView(frame: NSRect(x: 0, y: 0, width: 128, height: 150))
@@ -85,6 +86,7 @@ final class FileItemCell: NSCollectionViewItem {
         selectionCheckbox.isHidden = true
         selectionCheckbox.state = .off
         onCheckboxToggle = nil
+        currentFinderLabelNumber = 0
         tagIndicator.isHidden = true
         tagIndicator.layer?.backgroundColor = nil
         titleField.stringValue = ""
@@ -118,9 +120,19 @@ final class FileItemCell: NSCollectionViewItem {
         selectionCheckbox.isHidden = !showsSelectionCheckbox
         selectionCheckbox.state = isSelected ? .on : .off
         self.onCheckboxToggle = onCheckboxToggle
+        currentFinderLabelNumber = finderLabelNumber
         updateTagIndicator(finderLabelNumber: finderLabelNumber)
         titleField.stringValue = name
         subtitleField.stringValue = subtitle
+    }
+
+    func refreshAppearance() {
+        titleField.textColor = .labelColor
+        subtitleField.textColor = .secondaryLabelColor
+        view.layer?.backgroundColor = isSelected
+            ? NSColor.selectedControlColor.withAlphaComponent(0.24).cgColor
+            : NSColor.clear.cgColor
+        updateTagIndicator(finderLabelNumber: currentFinderLabelNumber)
     }
 
     @objc private func toggleSelectionCheckbox() {

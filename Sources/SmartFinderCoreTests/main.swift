@@ -183,6 +183,16 @@ expect(
     "unrelated workspace notifications should not refresh the mounted-volume sidebar"
 )
 
+let appearanceRefreshPolicy = AppearanceRefreshPolicy()
+expect(
+    appearanceRefreshPolicy.shouldRefreshAppearance(forNotificationNamed: "AppleInterfaceThemeChangedNotification"),
+    "system interface theme changes should refresh visible SmartFinder window colors"
+)
+expect(
+    !appearanceRefreshPolicy.shouldRefreshAppearance(forNotificationNamed: "NSWorkspaceDidMountNotification"),
+    "unrelated system notifications should not refresh SmartFinder window colors"
+)
+
 let breadcrumbURL = URL(fileURLWithPath: "/Users/bingwang/Pictures/RAW", isDirectory: true)
 let breadcrumbComponents = PathBreadcrumb.components(for: breadcrumbURL)
 expect(

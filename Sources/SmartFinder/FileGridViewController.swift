@@ -372,6 +372,25 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         showsSelectionCheckboxes
     }
 
+    func refreshAppearance() {
+        collectionView.backgroundColors = [.controlBackgroundColor]
+        collectionScrollView.backgroundColor = .controlBackgroundColor
+        tableView.backgroundColor = .controlBackgroundColor
+        tableScrollView.backgroundColor = .controlBackgroundColor
+        columnScrollView.backgroundColor = .controlBackgroundColor
+
+        for item in collectionView.visibleItems() {
+            (item as? FileItemCell)?.refreshAppearance()
+        }
+
+        tableView.reloadData()
+        for table in columnTables {
+            table.backgroundColor = .controlBackgroundColor
+            table.reloadData()
+        }
+        view.needsDisplay = true
+    }
+
     func currentViewMode() -> FileViewMode {
         viewMode
     }
