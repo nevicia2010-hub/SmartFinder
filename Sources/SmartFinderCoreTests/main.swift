@@ -335,6 +335,22 @@ expect(
     infoPanelPresentationWithOpenWith.row(for: .defaultApplication)?.value == "Preview",
     "info panel Open With section should include the current default application name"
 )
+expect(
+    FileInfoPanelLayoutMetrics.sectionTitleLeading == 0,
+    "info panel section titles should stay left-aligned instead of drifting to the trailing edge"
+)
+expect(
+    FileInfoPanelLayoutMetrics.rowLeading > FileInfoPanelLayoutMetrics.sectionTitleLeading,
+    "info panel detail rows should be indented under Finder-style section titles"
+)
+expect(
+    FileInfoPanelLayoutMetrics.fieldLabelAlignment == .leading,
+    "info panel field labels should be leading-aligned so localized labels do not look right-justified"
+)
+expect(
+    FileInfoPanelLayoutMetrics.contentTrailingInset >= 20,
+    "info panel content should keep a visible trailing margin instead of touching the window edge"
+)
 let defaultApplicationChangePolicy = DefaultApplicationChangePolicy()
 expect(
     defaultApplicationChangePolicy.canChangeDefaultApplication(

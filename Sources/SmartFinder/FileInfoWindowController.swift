@@ -53,7 +53,12 @@ final class FileInfoWindowController: NSWindowController, NSWindowDelegate {
         root.orientation = .vertical
         root.alignment = .width
         root.spacing = 10
-        root.edgeInsets = NSEdgeInsets(top: 18, left: 20, bottom: 14, right: 20)
+        root.edgeInsets = NSEdgeInsets(
+            top: 18,
+            left: CGFloat(FileInfoPanelLayoutMetrics.contentInset),
+            bottom: 14,
+            right: CGFloat(FileInfoPanelLayoutMetrics.contentInset)
+        )
         root.translatesAutoresizingMaskIntoConstraints = false
 
         root.addArrangedSubview(makeHeaderView())
@@ -139,37 +144,29 @@ final class FileInfoWindowController: NSWindowController, NSWindowDelegate {
             return makeOpenWithSectionView(section)
         }
 
-        let titleField = NSTextField(labelWithString: title(for: section.kind))
-        titleField.font = .systemFont(ofSize: 13, weight: .semibold)
-        titleField.textColor = .labelColor
+        let titleField = makeSectionTitle(for: section.kind)
 
         let rowsStack = NSStackView()
         rowsStack.orientation = .vertical
-        rowsStack.alignment = .leading
+        rowsStack.alignment = .width
         rowsStack.spacing = 8
         for row in section.rows {
             rowsStack.addArrangedSubview(makeRowView(row))
         }
 
-        let sectionStack = NSStackView(views: [titleField, rowsStack])
-        sectionStack.orientation = .vertical
-        sectionStack.alignment = .width
-        sectionStack.spacing = 7
-        sectionStack.edgeInsets = NSEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
-        sectionStack.translatesAutoresizingMaskIntoConstraints = false
-
-        return sectionStack
+        return makeSectionContainer(titleField: titleField, contentView: rowsStack)
     }
 
     private func makeOpenWithSectionView(_ section: FileInfoPanelSection) -> NSView {
-        let titleField = NSTextField(labelWithString: title(for: section.kind))
-        titleField.font = .systemFont(ofSize: 13, weight: .semibold)
+        let titleField = makeSectionTitle(for: section.kind)
 
         let popUpButton = NSPopUpButton()
         popUpButton.target = self
         popUpButton.action = #selector(openWithApplicationChanged(_:))
         popUpButton.translatesAutoresizingMaskIntoConstraints = false
-        popUpButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 260).isActive = true
+        popUpButton.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        popUpButton.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        popUpButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 220).isActive = true
         configureOpenWithMenu(popUpButton)
         openWithPopUpButton = popUpButton
 
@@ -190,21 +187,90 @@ final class FileInfoWindowController: NSWindowController, NSWindowDelegate {
         self.changeAllButton = changeAllButton
         updateChangeAllButtonState()
 
-        let rowStack = NSStackView(views: [makeFieldLabel(.defaultApplication), popUpButton, openButton, changeAllButton])
-        rowStack.orientation = .horizontal
-        rowStack.alignment = .centerY
-        rowStack.spacing = 10
+        let appRow = NSStackView(views: [makeFieldLabel(.defaultApplication), popUpButton])
+        appRow.orientation = .horizontal
+        appRow.alignment = .centerY
+        appRow.spacing = CGFloat(FileInfoPanelLayoutMetrics.rowSpacing)
+        appRow.translatesAutoresizingMaskIntoConstraints = false
 
-        let helpField = NSTextField(labelWithString: L10n.string("info.openWithHelp", fallback: "Choose an app to open this file."))
+        let buttonIndent = makeFieldColumnSpacer()
+        let buttonRow = NSStackView(views: [buttonIndent, openButton, changeAllButton])
+        buttonRow.orientation = .horizontal
+        buttonRow.alignment = .centerY
+        buttonRow.spacing = CGFloat(FileInfoPanelLayoutMetrics.rowSpacing)
+        buttonRow.translatesAutoresizingMaskIntoConstraints = false
+
+        let helpField = NSTextField(wrappingLabelWithString: L10n.string("info.openWithHelp", fallback: "Choose an app to open this file."))
         helpField.font = .systemFont(ofSize: 11.5)
         helpField.textColor = .secondaryLabelColor
+        helpField.lineBreakMode = .byWordWrapping
 
-        let sectionStack = NSStackView(views: [titleField, rowStack, helpField])
-        sectionStack.orientation = .vertical
-        sectionStack.alignment = .width
-        sectionStack.spacing = 7
-        sectionStack.edgeInsets = NSEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
-        return sectionStack
+        let helpIndent = makeFieldColumnSpacer()
+        let helpRow = NSStackView(views: [helpIndent, helpField])
+        helpRow.orientation = .horizontal
+        helpRow.alignment = .firstBaseline
+        helpRow.spacing = CGFloat(FileInfoPanelLayoutMetrics.rowSpacing)
+        helpRow.translatesAutoresizingMaskIntoConstraints = false
+
+        let contentStack = NSStackView(views: [appRow, buttonRow, helpRow])
+        contentStack.orientation = .vertical
+        contentStack.alignment = .width
+        contentStack.spacing = 6
+        contentStack.translatesAutoresizingMaskIntoConstraints = false
+
+        return makeSectionContainer(titleField: titleField, contentView: contentStack)
+    }
+
+    private func makeSectionTitle(for kind: FileInfoPanelSectionKind) -> NSTextField {
+        let titleField = NSTextField(labelWithString: title(for: kind))
+        titleField.font = .systemFont(ofSize: 13, weight: .semibold)
+        titleField.textColor = .labelColor
+        titleField.alignment = .left
+        titleField.setContentHuggingPriority(.required, for: .horizontal)
+        titleField.setContentCompressionResistancePriority(.required, for: .horizontal)
+        return titleField
+    }
+
+    private func makeSectionContainer(titleField: NSTextField, contentView: NSView) -> NSView {
+        let container = NSView()
+        titleField.translatesAutoresizingMaskIntoConstraints = false
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(titleField)
+        container.addSubview(contentView)
+
+        NSLayoutConstraint.activate([
+            titleField.topAnchor.constraint(
+                equalTo: container.topAnchor,
+                constant: CGFloat(FileInfoPanelLayoutMetrics.sectionVerticalPadding)
+            ),
+            titleField.leadingAnchor.constraint(
+                equalTo: container.leadingAnchor,
+                constant: CGFloat(FileInfoPanelLayoutMetrics.sectionTitleLeading)
+            ),
+            titleField.trailingAnchor.constraint(
+                lessThanOrEqualTo: container.trailingAnchor,
+                constant: -CGFloat(FileInfoPanelLayoutMetrics.contentTrailingInset)
+            ),
+
+            contentView.topAnchor.constraint(
+                equalTo: titleField.bottomAnchor,
+                constant: CGFloat(FileInfoPanelLayoutMetrics.sectionTitleRowSpacing)
+            ),
+            contentView.leadingAnchor.constraint(
+                equalTo: container.leadingAnchor,
+                constant: CGFloat(FileInfoPanelLayoutMetrics.rowLeading)
+            ),
+            contentView.trailingAnchor.constraint(
+                equalTo: container.trailingAnchor,
+                constant: -CGFloat(FileInfoPanelLayoutMetrics.contentTrailingInset)
+            ),
+            contentView.bottomAnchor.constraint(
+                equalTo: container.bottomAnchor,
+                constant: -CGFloat(FileInfoPanelLayoutMetrics.sectionVerticalPadding)
+            )
+        ])
+
+        return container
     }
 
     private func makeRowView(_ row: FileInfoPanelRow) -> NSView {
@@ -220,7 +286,7 @@ final class FileInfoWindowController: NSWindowController, NSWindowDelegate {
         let rowStack = NSStackView(views: [labelField, valueField])
         rowStack.orientation = .horizontal
         rowStack.alignment = .firstBaseline
-        rowStack.spacing = 10
+        rowStack.spacing = CGFloat(FileInfoPanelLayoutMetrics.rowSpacing)
         rowStack.translatesAutoresizingMaskIntoConstraints = false
 
         if row.isCopyable {
@@ -250,10 +316,28 @@ final class FileInfoWindowController: NSWindowController, NSWindowDelegate {
         let labelField = NSTextField(labelWithString: "\(label(for: field)):")
         labelField.font = .systemFont(ofSize: 12.5, weight: .semibold)
         labelField.textColor = .secondaryLabelColor
-        labelField.alignment = .right
+        labelField.alignment = nsTextAlignment(for: FileInfoPanelLayoutMetrics.fieldLabelAlignment)
         labelField.translatesAutoresizingMaskIntoConstraints = false
-        labelField.widthAnchor.constraint(equalToConstant: 112).isActive = true
+        labelField.widthAnchor.constraint(equalToConstant: CGFloat(FileInfoPanelLayoutMetrics.fieldLabelWidth)).isActive = true
         return labelField
+    }
+
+    private func makeFieldColumnSpacer() -> NSView {
+        let spacer = NSView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        spacer.widthAnchor.constraint(
+            equalToConstant: CGFloat(FileInfoPanelLayoutMetrics.fieldLabelWidth)
+        ).isActive = true
+        return spacer
+    }
+
+    private func nsTextAlignment(for alignment: FileInfoPanelFieldLabelAlignment) -> NSTextAlignment {
+        switch alignment {
+        case .leading:
+            return .left
+        case .trailing:
+            return .right
+        }
     }
 
     private func makeFooterView() -> NSView {

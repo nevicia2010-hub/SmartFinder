@@ -2,6 +2,19 @@
 
 ## 2026-07-05
 
+### Get Info Alignment Fix
+
+- Reworked the Get Info section layout so section titles stay left-aligned and detail rows sit under a consistent Finder-style indent.
+- Changed field labels from right-aligned to leading-aligned to avoid awkward localized text blocks in Chinese and other languages.
+- Added a trailing content margin so copy buttons, paths, and type identifiers do not touch the right edge of the window.
+- Split the Open With controls into a selectable application row plus a separate action row so the buttons do not force the panel wider than the window.
+- Added core layout metrics coverage to guard the alignment and margin rules without adding runtime thumbnail, memory, or GPU work.
+
+### Version And Packaging
+
+- Current released DMG: `SmartFinder-0.8.14.dmg`
+- Latest tag: `v0.8.14`
+
 ### Get Info Default Application Changes
 
 - Added a Finder-style `Change All...` action to the Get Info Open With section.
