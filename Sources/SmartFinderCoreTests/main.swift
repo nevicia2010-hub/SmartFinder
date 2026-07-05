@@ -335,6 +335,28 @@ expect(
     infoPanelPresentationWithOpenWith.row(for: .defaultApplication)?.value == "Preview",
     "info panel Open With section should include the current default application name"
 )
+let defaultApplicationChangePolicy = DefaultApplicationChangePolicy()
+expect(
+    defaultApplicationChangePolicy.canChangeDefaultApplication(
+        contentTypeIdentifier: "public.mpeg-4",
+        applicationBundleIdentifier: "com.apple.QuickTimePlayerX"
+    ),
+    "default application changes should be available when both a content type and app bundle identifier are known"
+)
+expect(
+    !defaultApplicationChangePolicy.canChangeDefaultApplication(
+        contentTypeIdentifier: nil,
+        applicationBundleIdentifier: "com.apple.QuickTimePlayerX"
+    ),
+    "default application changes should be disabled when the file content type is unknown"
+)
+expect(
+    !defaultApplicationChangePolicy.canChangeDefaultApplication(
+        contentTypeIdentifier: "public.mpeg-4",
+        applicationBundleIdentifier: nil
+    ),
+    "default application changes should be disabled when the selected app bundle identifier is unknown"
+)
 let photoMetadata = PhotoMetadataSummary(properties: [
     "PixelWidth": 8192,
     "PixelHeight": 5464,

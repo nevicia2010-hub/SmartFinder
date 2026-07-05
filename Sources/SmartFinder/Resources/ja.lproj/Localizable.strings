@@ -131,6 +131,15 @@
 "info.openWithButton" = "開く";
 "info.openWithHelp" = "このファイルを開くアプリケーションを選択します。";
 "info.noApplications" = "利用可能なアプリケーションが見つかりません";
+"info.changeAll" = "すべてを変更...";
+"info.changeDefault.title" = "デフォルトアプリケーションを変更しますか？";
+"info.changeDefault.message" = "%@ですべての%@タイプの書類を開きますか？";
+"info.changeDefault.unavailableTitle" = "デフォルトアプリケーションを変更できません";
+"info.changeDefault.unavailableMessage" = "SmartFinder はファイルタイプまたは選択したアプリケーションのバンドル識別子を見つけられませんでした。";
+"info.changeDefault.failedTitle" = "デフォルトアプリケーションを変更できませんでした";
+"info.changeDefault.failedMessage" = "LaunchServices がエラーコード %d を返しました。";
+"info.changeDefault.doneTitle" = "デフォルトアプリケーションを変更しました";
+"info.changeDefault.doneMessage" = "%@ はこのファイルタイプのデフォルトアプリケーションになりました。";
 "photo.camera" = "カメラ";
 "photo.lens" = "レンズ";
 "photo.dimensions" = "サイズ";

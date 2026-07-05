@@ -131,6 +131,15 @@
 "info.openWithButton" = "Abrir";
 "info.openWithHelp" = "Elige una aplicación para abrir este archivo.";
 "info.noApplications" = "No se encontró ninguna aplicación";
+"info.changeAll" = "Cambiar todo...";
+"info.changeDefault.title" = "¿Cambiar aplicación predeterminada?";
+"info.changeDefault.message" = "¿Usar %@ para abrir todos los documentos de tipo %@?";
+"info.changeDefault.unavailableTitle" = "No se puede cambiar la aplicación predeterminada";
+"info.changeDefault.unavailableMessage" = "SmartFinder no pudo encontrar el tipo de archivo o el identificador de bundle de la aplicación seleccionada.";
+"info.changeDefault.failedTitle" = "No se pudo cambiar la aplicación predeterminada";
+"info.changeDefault.failedMessage" = "LaunchServices devolvió el código de error %d.";
+"info.changeDefault.doneTitle" = "Aplicación predeterminada cambiada";
+"info.changeDefault.doneMessage" = "%@ es ahora la aplicación predeterminada para este tipo de archivo.";
 "photo.camera" = "Cámara";
 "photo.lens" = "Objetivo";
 "photo.dimensions" = "Dimensiones";

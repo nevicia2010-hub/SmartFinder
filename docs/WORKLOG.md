@@ -2,6 +2,21 @@
 
 ## 2026-07-05
 
+### Get Info Default Application Changes
+
+- Added a Finder-style `Change All...` action to the Get Info Open With section.
+- Selecting an application in the Open With pop-up still only changes the selected app in the panel.
+- The `Open` button still opens the current file once with the selected application.
+- The new `Change All...` button asks for confirmation and then uses macOS LaunchServices to make the selected application the default handler for that file content type.
+- The button is enabled only when SmartFinder knows both the file content type identifier and the selected application's bundle identifier.
+- Added localized confirmation, success, and error messages across all existing UI languages.
+- Added core policy coverage for when default application changes should be available.
+
+### Version And Packaging
+
+- Current released DMG: `SmartFinder-0.8.13.dmg`
+- Latest tag: `v0.8.13`
+
 ### Get Info Layout And Open With
 
 - Tightened the Get Info window layout so sections start directly under the header without the large blank gap seen in the first Finder-style attempt.

@@ -131,6 +131,15 @@
 "info.openWithButton" = "Open";
 "info.openWithHelp" = "Choose an app to open this file.";
 "info.noApplications" = "No application found";
+"info.changeAll" = "Change All...";
+"info.changeDefault.title" = "Change Default Application?";
+"info.changeDefault.message" = "Use %@ to open all documents of type %@?";
+"info.changeDefault.unavailableTitle" = "Cannot Change Default Application";
+"info.changeDefault.unavailableMessage" = "SmartFinder could not find the file type or selected application's bundle identifier.";
+"info.changeDefault.failedTitle" = "Could Not Change Default Application";
+"info.changeDefault.failedMessage" = "LaunchServices returned error code %d.";
+"info.changeDefault.doneTitle" = "Default Application Changed";
+"info.changeDefault.doneMessage" = "%@ is now the default application for this file type.";
 "photo.camera" = "Camera";
 "photo.lens" = "Lens";
 "photo.dimensions" = "Dimensions";

@@ -131,6 +131,15 @@
 "info.openWithButton" = "打開";
 "info.openWithHelp" = "選擇用於打開此檔案的應用程式。";
 "info.noApplications" = "找不到可用應用程式";
+"info.changeAll" = "全部更改...";
+"info.changeDefault.title" = "更改預設打開程式？";
+"info.changeDefault.message" = "使用 %@ 打開所有 %@ 類型的文件？";
+"info.changeDefault.unavailableTitle" = "無法更改預設打開程式";
+"info.changeDefault.unavailableMessage" = "SmartFinder 無法找到檔案類型或所選應用程式的 Bundle 識別碼。";
+"info.changeDefault.failedTitle" = "未能更改預設打開程式";
+"info.changeDefault.failedMessage" = "LaunchServices 返回錯誤代碼 %d。";
+"info.changeDefault.doneTitle" = "預設打開程式已更改";
+"info.changeDefault.doneMessage" = "%@ 現在是此檔案類型的預設打開程式。";
 "photo.camera" = "相機";
 "photo.lens" = "鏡頭";
 "photo.dimensions" = "尺寸";

@@ -131,6 +131,15 @@
 "info.openWithButton" = "Öffnen";
 "info.openWithHelp" = "Wählen Sie ein Programm zum Öffnen dieser Datei.";
 "info.noApplications" = "Kein Programm gefunden";
+"info.changeAll" = "Alle ändern...";
+"info.changeDefault.title" = "Standardprogramm ändern?";
+"info.changeDefault.message" = "%@ zum Öffnen aller Dokumente des Typs %@ verwenden?";
+"info.changeDefault.unavailableTitle" = "Standardprogramm kann nicht geändert werden";
+"info.changeDefault.unavailableMessage" = "SmartFinder konnte den Dateityp oder die Bundle-Kennung des ausgewählten Programms nicht finden.";
+"info.changeDefault.failedTitle" = "Standardprogramm konnte nicht geändert werden";
+"info.changeDefault.failedMessage" = "LaunchServices gab Fehlercode %d zurück.";
+"info.changeDefault.doneTitle" = "Standardprogramm geändert";
+"info.changeDefault.doneMessage" = "%@ ist jetzt das Standardprogramm für diesen Dateityp.";
 "photo.camera" = "Kamera";
 "photo.lens" = "Objektiv";
 "photo.dimensions" = "Abmessungen";

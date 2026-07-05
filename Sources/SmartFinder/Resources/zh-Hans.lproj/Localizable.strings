@@ -131,6 +131,15 @@
 "info.openWithButton" = "打开";
 "info.openWithHelp" = "选择用于打开此文件的应用程序。";
 "info.noApplications" = "未找到可用应用程序";
+"info.changeAll" = "全部更改...";
+"info.changeDefault.title" = "更改默认打开程序？";
+"info.changeDefault.message" = "使用 %@ 打开所有 %@ 类型的文稿？";
+"info.changeDefault.unavailableTitle" = "无法更改默认打开程序";
+"info.changeDefault.unavailableMessage" = "SmartFinder 无法找到文件类型或所选应用程序的 Bundle 标识符。";
+"info.changeDefault.failedTitle" = "未能更改默认打开程序";
+"info.changeDefault.failedMessage" = "LaunchServices 返回错误代码 %d。";
+"info.changeDefault.doneTitle" = "默认打开程序已更改";
+"info.changeDefault.doneMessage" = "%@ 现在是此文件类型的默认打开程序。";
 "photo.camera" = "相机";
 "photo.lens" = "镜头";
 "photo.dimensions" = "尺寸";

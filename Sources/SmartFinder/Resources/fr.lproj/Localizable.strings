@@ -131,6 +131,15 @@
 "info.openWithButton" = "Ouvrir";
 "info.openWithHelp" = "Choisissez une application pour ouvrir ce fichier.";
 "info.noApplications" = "Aucune application trouvée";
+"info.changeAll" = "Tout modifier...";
+"info.changeDefault.title" = "Modifier l'application par défaut ?";
+"info.changeDefault.message" = "Utiliser %@ pour ouvrir tous les documents de type %@ ?";
+"info.changeDefault.unavailableTitle" = "Impossible de modifier l'application par défaut";
+"info.changeDefault.unavailableMessage" = "SmartFinder n'a pas trouvé le type de fichier ou l'identifiant de bundle de l'application sélectionnée.";
+"info.changeDefault.failedTitle" = "Impossible de modifier l'application par défaut";
+"info.changeDefault.failedMessage" = "LaunchServices a renvoyé le code d'erreur %d.";
+"info.changeDefault.doneTitle" = "Application par défaut modifiée";
+"info.changeDefault.doneMessage" = "%@ est maintenant l'application par défaut pour ce type de fichier.";
 "photo.camera" = "Appareil";
 "photo.lens" = "Objectif";
 "photo.dimensions" = "Dimensions";

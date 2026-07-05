@@ -1,4 +1,5 @@
 import AppKit
+import CoreServices
 import SmartFinderCore
 
 final class FileInfoWindowController: NSWindowController, NSWindowDelegate {
@@ -7,13 +8,16 @@ final class FileInfoWindowController: NSWindowController, NSWindowDelegate {
     private struct OpenWithApplication {
         let name: String
         let url: URL
+        let bundleIdentifier: String?
     }
 
     private let presentation: FileInfoPanelPresentation
     private let icon: NSImage
     private let openWithApplications: [OpenWithApplication]
+    private let defaultApplicationChangePolicy = DefaultApplicationChangePolicy()
     private var copyableValues: [String] = []
     private weak var openWithPopUpButton: NSPopUpButton?
+    private weak var changeAllButton: NSButton?
 
     init(presentation: FileInfoPanelPresentation, icon: NSImage) {
         self.presentation = presentation
@@ -177,7 +181,16 @@ final class FileInfoWindowController: NSWindowController, NSWindowDelegate {
         openButton.bezelStyle = .rounded
         openButton.isEnabled = !openWithApplications.isEmpty
 
-        let rowStack = NSStackView(views: [makeFieldLabel(.defaultApplication), popUpButton, openButton])
+        let changeAllButton = NSButton(
+            title: L10n.string("info.changeAll", fallback: "Change All..."),
+            target: self,
+            action: #selector(changeDefaultApplication)
+        )
+        changeAllButton.bezelStyle = .rounded
+        self.changeAllButton = changeAllButton
+        updateChangeAllButtonState()
+
+        let rowStack = NSStackView(views: [makeFieldLabel(.defaultApplication), popUpButton, openButton, changeAllButton])
         rowStack.orientation = .horizontal
         rowStack.alignment = .centerY
         rowStack.spacing = 10
@@ -340,7 +353,9 @@ final class FileInfoWindowController: NSWindowController, NSWindowDelegate {
         NSWorkspace.shared.activateFileViewerSelecting([presentation.representedURL])
     }
 
-    @objc private func openWithApplicationChanged(_ sender: NSPopUpButton) {}
+    @objc private func openWithApplicationChanged(_ sender: NSPopUpButton) {
+        updateChangeAllButtonState()
+    }
 
     @objc private func openWithSelectedApplication() {
         guard let selectedApp = selectedOpenWithApplication() else {
@@ -354,6 +369,47 @@ final class FileInfoWindowController: NSWindowController, NSWindowDelegate {
             withApplicationAt: selectedApp.url,
             configuration: configuration
         )
+    }
+
+    @objc private func changeDefaultApplication() {
+        guard let selectedApp = selectedOpenWithApplication(),
+              let bundleIdentifier = selectedApp.bundleIdentifier,
+              let contentTypeIdentifier = contentTypeIdentifier,
+              defaultApplicationChangePolicy.canChangeDefaultApplication(
+                contentTypeIdentifier: contentTypeIdentifier,
+                applicationBundleIdentifier: bundleIdentifier
+              ) else {
+            showChangeDefaultUnavailableAlert()
+            return
+        }
+
+        let alert = NSAlert()
+        alert.messageText = L10n.string("info.changeDefault.title", fallback: "Change Default Application?")
+        alert.informativeText = L10n.format(
+            "info.changeDefault.message",
+            fallback: "Use %@ to open all documents of type %@?",
+            selectedApp.name,
+            contentTypeIdentifier
+        )
+        alert.addButton(withTitle: L10n.string("info.changeAll", fallback: "Change All..."))
+        alert.addButton(withTitle: L10n.string("dialog.cancel", fallback: "Cancel"))
+
+        guard alert.runModal() == .alertFirstButtonReturn else {
+            return
+        }
+
+        let status = LSSetDefaultRoleHandlerForContentType(
+            contentTypeIdentifier as CFString,
+            LSRolesMask.all,
+            bundleIdentifier as CFString
+        )
+
+        guard status == noErr else {
+            showChangeDefaultError(status)
+            return
+        }
+
+        showChangeDefaultSuccess(selectedApp.name)
     }
 
     @objc private func closeWindow() {
@@ -389,6 +445,53 @@ final class FileInfoWindowController: NSWindowController, NSWindowDelegate {
         return openWithApplications.first { $0.url == selectedURL }
     }
 
+    private var contentTypeIdentifier: String? {
+        presentation.row(for: .typeIdentifier)?.value
+    }
+
+    private func updateChangeAllButtonState() {
+        let selectedApp = selectedOpenWithApplication()
+        changeAllButton?.isEnabled = defaultApplicationChangePolicy.canChangeDefaultApplication(
+            contentTypeIdentifier: contentTypeIdentifier,
+            applicationBundleIdentifier: selectedApp?.bundleIdentifier
+        )
+    }
+
+    private func showChangeDefaultUnavailableAlert() {
+        let alert = NSAlert()
+        alert.messageText = L10n.string("info.changeDefault.unavailableTitle", fallback: "Cannot Change Default Application")
+        alert.informativeText = L10n.string(
+            "info.changeDefault.unavailableMessage",
+            fallback: "SmartFinder could not find the file type or selected application's bundle identifier."
+        )
+        alert.addButton(withTitle: L10n.string("dialog.ok", fallback: "OK"))
+        alert.runModal()
+    }
+
+    private func showChangeDefaultError(_ status: OSStatus) {
+        let alert = NSAlert()
+        alert.messageText = L10n.string("info.changeDefault.failedTitle", fallback: "Could Not Change Default Application")
+        alert.informativeText = L10n.format(
+            "info.changeDefault.failedMessage",
+            fallback: "LaunchServices returned error code %d.",
+            status
+        )
+        alert.addButton(withTitle: L10n.string("dialog.ok", fallback: "OK"))
+        alert.runModal()
+    }
+
+    private func showChangeDefaultSuccess(_ appName: String) {
+        let alert = NSAlert()
+        alert.messageText = L10n.string("info.changeDefault.doneTitle", fallback: "Default Application Changed")
+        alert.informativeText = L10n.format(
+            "info.changeDefault.doneMessage",
+            fallback: "%@ is now the default application for this file type.",
+            appName
+        )
+        alert.addButton(withTitle: L10n.string("dialog.ok", fallback: "OK"))
+        alert.runModal()
+    }
+
     private static func applications(toOpen fileURL: URL) -> [OpenWithApplication] {
         let workspace = NSWorkspace.shared
         let defaultURL = workspace.urlForApplication(toOpen: fileURL)
@@ -404,7 +507,11 @@ final class FileInfoWindowController: NSWindowController, NSWindowDelegate {
                 return nil
             }
             seen.insert(standardizedURL)
-            return OpenWithApplication(name: applicationName(for: standardizedURL), url: standardizedURL)
+            return OpenWithApplication(
+                name: applicationName(for: standardizedURL),
+                url: standardizedURL,
+                bundleIdentifier: Bundle(url: standardizedURL)?.bundleIdentifier
+            )
         }
 
         return apps.sorted { lhs, rhs in
