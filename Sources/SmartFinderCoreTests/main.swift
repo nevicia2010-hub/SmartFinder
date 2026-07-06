@@ -421,6 +421,18 @@ expect(
     FileTemplateCatalog.templates.map(\.kind) == [.plainText, .markdown, .csv],
     "file template catalog should expose text, markdown, and csv templates"
 )
+expect(
+    FileDragOperationPolicy.sourceOperations.contains(.move),
+    "file browser drag sources should allow moving files and folders inside SmartFinder"
+)
+expect(
+    FileDragOperationPolicy.sourceOperations.contains(.copy),
+    "file browser drag sources should allow Option-drag copying files and folders inside SmartFinder"
+)
+expect(
+    FileDragOperationPolicy.sourceOperations.count == 2,
+    "file browser drag sources should expose only copy and move operations"
+)
 
 let pathFormatURLs = [
     URL(fileURLWithPath: "/Volumes/Photo Archive/Test File.txt"),

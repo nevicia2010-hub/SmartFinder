@@ -2,6 +2,19 @@
 
 ## 2026-07-05
 
+### File Drag Source Fix
+
+- Fixed an interaction bug where dragging files or folders from SmartFinder's browser area did not start reliably.
+- The browser already registered file URL drop types, but the icon view, list view, and column view were not explicitly configured as drag sources.
+- Added shared drag-source policy coverage requiring both move and Option-drag copy operations.
+- Applied that drag-source policy to the icon collection view, the list table view, and every column-view table.
+- The existing drop/transfer path remains unchanged: normal drag moves files, Option-drag copies files, and invalid folder drops such as dropping a folder into itself are still rejected.
+
+### Version And Packaging
+
+- Current released DMG: `SmartFinder-0.8.15.dmg`
+- Latest tag: `v0.8.15`
+
 ### Get Info Alignment Fix
 
 - Reworked the Get Info section layout so section titles stay left-aligned and detail rows sit under a consistent Finder-style indent.

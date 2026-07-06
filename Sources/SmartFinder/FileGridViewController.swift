@@ -172,7 +172,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         collectionView.allowsMultipleSelection = true
         collectionView.backgroundColors = [.controlBackgroundColor]
         collectionView.register(FileItemCell.self, forItemWithIdentifier: FileItemCell.reuseIdentifier)
-        collectionView.registerForDraggedTypes([.fileURL])
+        configureFileDragging(for: collectionView)
 
         collectionScrollView.hasVerticalScroller = true
         collectionScrollView.hasHorizontalScroller = false
@@ -227,7 +227,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         tableView.backgroundColor = .controlBackgroundColor
         tableView.rowHeight = 30
         tableView.intercellSpacing = NSSize(width: 0, height: 2)
-        tableView.registerForDraggedTypes([.fileURL])
+        configureFileDragging(for: tableView)
 
         addTableColumn(identifier: "selectionCheckbox", titleKey: "", fallback: "", width: 34)
         addTableColumn(identifier: "name", titleKey: "toolbar.sort.name", fallback: "Name", width: 320)
@@ -244,6 +244,29 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         columnScrollView.backgroundColor = .controlBackgroundColor
         columnScrollView.documentView = columnDocumentView
         columnScrollView.isHidden = true
+    }
+
+    private func configureFileDragging(for collectionView: NSCollectionView) {
+        collectionView.registerForDraggedTypes([.fileURL])
+        collectionView.setDraggingSourceOperationMask(fileDragSourceOperationMask(), forLocal: true)
+        collectionView.setDraggingSourceOperationMask(fileDragSourceOperationMask(), forLocal: false)
+    }
+
+    private func configureFileDragging(for tableView: NSTableView) {
+        tableView.registerForDraggedTypes([.fileURL])
+        tableView.setDraggingSourceOperationMask(fileDragSourceOperationMask(), forLocal: true)
+        tableView.setDraggingSourceOperationMask(fileDragSourceOperationMask(), forLocal: false)
+    }
+
+    private func fileDragSourceOperationMask() -> NSDragOperation {
+        FileDragOperationPolicy.sourceOperations.reduce([]) { mask, operation in
+            switch operation {
+            case .copy:
+                return mask.union(.copy)
+            case .move:
+                return mask.union(.move)
+            }
+        }
     }
 
     private func addTableColumn(identifier: String, titleKey: String, fallback: String, width: CGFloat) {
@@ -1530,7 +1553,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
             table.rowHeight = 32
             table.intercellSpacing = NSSize(width: 0, height: 1)
             table.tag = index
-            table.registerForDraggedTypes([.fileURL])
+            configureFileDragging(for: table)
 
             let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("columnName"))
             column.width = CGFloat(frame.width)
