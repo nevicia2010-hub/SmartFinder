@@ -154,6 +154,8 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     private var showsFileExtensions = true
     private var showsSelectionCheckboxes = false
     private var suppressColumnSelectionChange = false
+    private var activeColumnIndexForCreation: Int?
+    private var contextualCreationDirectoryURL: URL?
     private var folderSizeCancellationToken: FolderSizeCancellationToken?
     private var infoWindowControllers: [FileInfoWindowController] = []
 
@@ -352,6 +354,10 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     func setViewMode(_ mode: FileViewMode) {
         let selectedURLSet = Set(selectedItems().map(\.url))
         viewMode = mode
+        if mode != .column {
+            activeColumnIndexForCreation = nil
+            contextualCreationDirectoryURL = nil
+        }
         collectionScrollView.isHidden = mode != .icon
         tableScrollView.isHidden = mode != .list
         columnScrollView.isHidden = mode != .column
@@ -781,6 +787,8 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     func smartCollectionViewDidRightClick(event: NSEvent) {
         switch viewMode {
         case .icon:
+            contextualCreationDirectoryURL = nil
+            activeColumnIndexForCreation = nil
             let point = collectionView.convert(event.locationInWindow, from: nil)
             if let indexPath = collectionView.indexPathForItem(at: point),
                !collectionView.selectionIndexPaths.contains(indexPath) {
@@ -790,6 +798,8 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
 
             contextMenu().popUp(positioning: nil, at: point, in: collectionView)
         case .list:
+            contextualCreationDirectoryURL = nil
+            activeColumnIndexForCreation = nil
             let point = tableView.convert(event.locationInWindow, from: nil)
             let row = tableView.row(at: point)
             if row >= 0, !tableView.selectedRowIndexes.contains(row) {
@@ -802,6 +812,8 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
             guard let target = columnTable(atWindowPoint: event.locationInWindow) else {
                 return
             }
+            activeColumnIndexForCreation = columnIndex(for: target)
+            contextualCreationDirectoryURL = activeColumnDirectoryURL()
 
             let point = target.convert(event.locationInWindow, from: nil)
             let row = target.row(at: point)
@@ -815,7 +827,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     }
 
     func createFolder() {
-        guard let currentFolderURL else {
+        guard let targetDirectoryURL = creationTargetDirectoryURL() else {
             return
         }
 
@@ -829,8 +841,8 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         }
 
         do {
-            try fileOperations.createFolder(named: folderName, in: currentFolderURL)
-            refresh()
+            try fileOperations.createFolder(named: folderName, in: targetDirectoryURL)
+            refreshAfterCreatingItem(in: targetDirectoryURL)
         } catch {
             showOperationError(error)
         }
@@ -943,28 +955,53 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     }
 
     func createFile(fromTemplate kind: FileTemplateKind) {
-        guard let currentFolderURL else {
+        guard let targetDirectoryURL = creationTargetDirectoryURL() else {
             return
         }
 
         do {
-            try fileOperations.createFile(fromTemplate: kind, in: currentFolderURL)
-            refresh()
+            try fileOperations.createFile(fromTemplate: kind, in: targetDirectoryURL)
+            refreshAfterCreatingItem(in: targetDirectoryURL)
         } catch {
             showOperationError(error)
         }
     }
 
     func createTextFile(named name: String, contents: String = "") {
-        guard let currentFolderURL else {
+        guard let targetDirectoryURL = creationTargetDirectoryURL() else {
             return
         }
 
         do {
-            try fileOperations.createFile(named: name, contents: contents, in: currentFolderURL)
-            refresh()
+            try fileOperations.createFile(named: name, contents: contents, in: targetDirectoryURL)
+            refreshAfterCreatingItem(in: targetDirectoryURL)
         } catch {
             showOperationError(error)
+        }
+    }
+
+    private func creationTargetDirectoryURL() -> URL? {
+        FileCreationTargetPolicy.targetDirectory(
+            currentFolderURL: activeColumnDirectoryURL() ?? currentFolderURL,
+            contextualFolderURL: contextualCreationDirectoryURL
+        )
+    }
+
+    private func activeColumnDirectoryURL() -> URL? {
+        guard viewMode == .column,
+              let activeColumnIndexForCreation,
+              columnFolders.indices.contains(activeColumnIndexForCreation) else {
+            return nil
+        }
+        return columnFolders[activeColumnIndexForCreation].url
+    }
+
+    private func refreshAfterCreatingItem(in directoryURL: URL) {
+        contextualCreationDirectoryURL = nil
+        if viewMode == .column {
+            refreshAffectedColumnFolders([directoryURL])
+        } else {
+            refresh()
         }
     }
 
@@ -1683,6 +1720,9 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     }
 
     private func handleColumnSelection(in table: NSTableView, columnIndex: Int) {
+        activeColumnIndexForCreation = columnIndex
+        contextualCreationDirectoryURL = nil
+
         let selectedRow = table.selectedRow
         guard selectedRow >= 0 else {
             updateStatus()
@@ -1846,15 +1886,16 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     private func contextMenu() -> NSMenu {
         let menu = NSMenu()
         let hasSelection = !selectedItems().isEmpty
+        let canCreate = creationTargetDirectoryURL() != nil
 
         menu.addItem(menuItem("menu.open", fallback: "Open", action: #selector(openSelectedItemFromMenu), enabled: hasSelection))
         menu.addItem(menuItem("menu.quickLook", fallback: "Quick Look", action: #selector(quickLookFromMenu), enabled: hasSelection))
         menu.addItem(menuItem("menu.getInfo", fallback: "Get Info", action: #selector(getInfoFromMenu), enabled: hasSelection))
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(menuItem("menu.newFolder", fallback: "New Folder", action: #selector(createFolderFromMenu), enabled: currentFolderURL != nil))
-        menu.addItem(menuItem("menu.newTextFile", fallback: "New Text File", action: #selector(createTextFileFromMenu), enabled: currentFolderURL != nil))
-        menu.addItem(menuItem("menu.newMarkdownFile", fallback: "New Markdown File", action: #selector(createMarkdownFileFromMenu), enabled: currentFolderURL != nil))
-        menu.addItem(menuItem("menu.newCSVFile", fallback: "New CSV File", action: #selector(createCSVFileFromMenu), enabled: currentFolderURL != nil))
+        menu.addItem(menuItem("menu.newFolder", fallback: "New Folder", action: #selector(createFolderFromMenu), enabled: canCreate))
+        menu.addItem(menuItem("menu.newTextFile", fallback: "New Text File", action: #selector(createTextFileFromMenu), enabled: canCreate))
+        menu.addItem(menuItem("menu.newMarkdownFile", fallback: "New Markdown File", action: #selector(createMarkdownFileFromMenu), enabled: canCreate))
+        menu.addItem(menuItem("menu.newCSVFile", fallback: "New CSV File", action: #selector(createCSVFileFromMenu), enabled: canCreate))
         menu.addItem(menuItem("menu.rename", fallback: "Rename", action: #selector(renameFromMenu), enabled: selectedItems().count == 1))
         menu.addItem(menuItem("menu.moveToTrash", fallback: "Move to Trash", action: #selector(moveToTrashFromMenu), enabled: hasSelection))
         menu.addItem(NSMenuItem.separator())

@@ -1,5 +1,19 @@
 # Work Log
 
+## 2026-07-07
+
+### Column View Creation Target Fix
+
+- Changed column-view creation actions so New Folder, New Text File, New Markdown File, and New CSV File target the column the user is working in.
+- Right-clicking a column now makes that column's represented folder the creation target.
+- Toolbar, menu bar, and shortcut creation actions use the last interacted column when column view is active, falling back to the current folder outside column view.
+- Added core coverage for creation target selection so contextual column targets win over the current rightmost folder.
+
+### Version And Packaging
+
+- Current released DMG: `SmartFinder-0.8.18.dmg`
+- Latest tag: `v0.8.18`
+
 ## 2026-07-06
 
 ### Column Drag Local Refresh Fix

@@ -462,6 +462,26 @@ expect(
     FileTemplateCatalog.templates.map(\.kind) == [.plainText, .markdown, .csv],
     "file template catalog should expose text, markdown, and csv templates"
 )
+let columnFolderCreationTarget = FileCreationTargetPolicy.targetDirectory(
+    currentFolderURL: URL(fileURLWithPath: "/tmp/rightmost", isDirectory: true),
+    contextualFolderURL: URL(fileURLWithPath: "/tmp/parent-column", isDirectory: true)
+)
+expect(
+    columnFolderCreationTarget?.path == "/tmp/parent-column",
+    "file creation should target the column or folder where the user opened the context menu"
+)
+let defaultFolderCreationTarget = FileCreationTargetPolicy.targetDirectory(
+    currentFolderURL: URL(fileURLWithPath: "/tmp/rightmost", isDirectory: true),
+    contextualFolderURL: nil
+)
+expect(
+    defaultFolderCreationTarget?.path == "/tmp/rightmost",
+    "file creation should fall back to the current folder when there is no contextual column target"
+)
+expect(
+    FileCreationTargetPolicy.targetDirectory(currentFolderURL: nil, contextualFolderURL: nil) == nil,
+    "file creation should be unavailable without any known target folder"
+)
 expect(
     FileDragOperationPolicy.sourceOperations.contains(.move),
     "file browser drag sources should allow moving files and folders inside SmartFinder"
