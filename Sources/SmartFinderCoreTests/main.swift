@@ -392,6 +392,22 @@ expect(
     FileInfoPanelLayoutMetrics.contentTrailingInset >= 20,
     "info panel content should keep a visible trailing margin instead of touching the window edge"
 )
+expect(
+    OpenWithMenuPolicy.canShowOpenWith(selectedItemCount: 1, selectedItemIsDirectory: false),
+    "Open With should be available for a single selected file"
+)
+expect(
+    !OpenWithMenuPolicy.canShowOpenWith(selectedItemCount: 0, selectedItemIsDirectory: false),
+    "Open With should not be available when nothing is selected"
+)
+expect(
+    !OpenWithMenuPolicy.canShowOpenWith(selectedItemCount: 2, selectedItemIsDirectory: false),
+    "Open With should not be available for multiple selected items"
+)
+expect(
+    !OpenWithMenuPolicy.canShowOpenWith(selectedItemCount: 1, selectedItemIsDirectory: true),
+    "Open With should not be available for folders"
+)
 let defaultApplicationChangePolicy = DefaultApplicationChangePolicy()
 expect(
     defaultApplicationChangePolicy.canChangeDefaultApplication(

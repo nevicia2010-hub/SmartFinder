@@ -88,6 +88,7 @@
 "menu.tags.gray" = "Gris";
 "menu.tags.clear" = "Borrar etiquetas";
 "menu.open" = "Abrir";
+"menu.openWithOther" = "Otra...";
 "menu.quickLook" = "Vista rápida";
 "menu.getInfo" = "Obtener información";
 "menu.newFolder" = "Nueva carpeta";

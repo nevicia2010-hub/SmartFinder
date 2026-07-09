@@ -1,5 +1,6 @@
 import AppKit
 import SmartFinderCore
+import UniformTypeIdentifiers
 
 enum FileSortMode: Equatable {
     case name
@@ -137,6 +138,11 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         let url: URL
         let items: [FileItem]
         let selectedURL: URL?
+    }
+
+    private struct OpenWithApplication {
+        let name: String
+        let url: URL
     }
 
     private var currentFolderURL: URL?
@@ -1327,6 +1333,41 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         openSelection()
     }
 
+    @objc private func openSelectedItemWithApplication(_ sender: NSMenuItem) {
+        guard let appURL = sender.representedObject as? URL,
+              let item = selectedItems().first else {
+            return
+        }
+
+        open(item.url, withApplicationAt: appURL)
+    }
+
+    @objc private func openSelectedItemWithOtherApplication() {
+        guard let item = selectedItems().first,
+              OpenWithMenuPolicy.canShowOpenWith(
+                  selectedItemCount: selectedItems().count,
+                  selectedItemIsDirectory: item.isDirectory
+              ) else {
+            return
+        }
+
+        let panel = NSOpenPanel()
+        panel.title = L10n.string("info.section.openWith", fallback: "Open With")
+        panel.prompt = L10n.string("dialog.ok", fallback: "OK")
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [.applicationBundle]
+
+        guard panel.runModal() == .OK,
+              let appURL = panel.url else {
+            return
+        }
+
+        open(item.url, withApplicationAt: appURL)
+    }
+
     @objc private func quickLookFromMenu() {
         quickLookSelection()
     }
@@ -1889,6 +1930,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         let canCreate = creationTargetDirectoryURL() != nil
 
         menu.addItem(menuItem("menu.open", fallback: "Open", action: #selector(openSelectedItemFromMenu), enabled: hasSelection))
+        menu.addItem(openWithMenuItem())
         menu.addItem(menuItem("menu.quickLook", fallback: "Quick Look", action: #selector(quickLookFromMenu), enabled: hasSelection))
         menu.addItem(menuItem("menu.getInfo", fallback: "Get Info", action: #selector(getInfoFromMenu), enabled: hasSelection))
         menu.addItem(NSMenuItem.separator())
@@ -1912,6 +1954,61 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         menu.addItem(menuItem("menu.revealInFinder", fallback: "Reveal in Finder", action: #selector(revealInFinderFromMenu), enabled: hasSelection || currentFolderURL != nil))
 
         return menu
+    }
+
+    private func openWithMenuItem() -> NSMenuItem {
+        let selected = selectedItems()
+        let selectedItem = selected.first
+        let canOpenWith = OpenWithMenuPolicy.canShowOpenWith(
+            selectedItemCount: selected.count,
+            selectedItemIsDirectory: selectedItem?.isDirectory ?? false
+        )
+        let item = NSMenuItem(
+            title: L10n.string("info.section.openWith", fallback: "Open With"),
+            action: nil,
+            keyEquivalent: ""
+        )
+        item.isEnabled = canOpenWith
+
+        let submenu = NSMenu()
+        if canOpenWith, let selectedItem {
+            let applications = applications(toOpen: selectedItem.url)
+            if applications.isEmpty {
+                let emptyItem = NSMenuItem(
+                    title: L10n.string("info.noApplications", fallback: "No application found"),
+                    action: nil,
+                    keyEquivalent: ""
+                )
+                emptyItem.isEnabled = false
+                submenu.addItem(emptyItem)
+            } else {
+                for application in applications {
+                    let appItem = NSMenuItem(
+                        title: application.name,
+                        action: #selector(openSelectedItemWithApplication(_:)),
+                        keyEquivalent: ""
+                    )
+                    appItem.target = self
+                    appItem.representedObject = application.url
+                    let icon = NSWorkspace.shared.icon(forFile: application.url.path)
+                    icon.size = NSSize(width: 16, height: 16)
+                    appItem.image = icon
+                    submenu.addItem(appItem)
+                }
+                submenu.addItem(NSMenuItem.separator())
+            }
+
+            let otherItem = NSMenuItem(
+                title: L10n.string("menu.openWithOther", fallback: "Other..."),
+                action: #selector(openSelectedItemWithOtherApplication),
+                keyEquivalent: ""
+            )
+            otherItem.target = self
+            submenu.addItem(otherItem)
+        }
+
+        item.submenu = submenu
+        return item
     }
 
     private func menuItem(_ key: String, fallback: String, action: Selector, enabled: Bool) -> NSMenuItem {
@@ -2052,6 +2149,50 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
             return bundleName
         }
         return FileManager.default.displayName(atPath: appURL.path)
+    }
+
+    private func open(_ fileURL: URL, withApplicationAt appURL: URL) {
+        let configuration = NSWorkspace.OpenConfiguration()
+        NSWorkspace.shared.open([fileURL], withApplicationAt: appURL, configuration: configuration)
+    }
+
+    private func applications(toOpen fileURL: URL) -> [OpenWithApplication] {
+        let workspace = NSWorkspace.shared
+        let defaultURL = workspace.urlForApplication(toOpen: fileURL)?.standardizedFileURL
+        var urls = workspace.urlsForApplications(toOpen: fileURL).map(\.standardizedFileURL)
+        if let defaultURL, !urls.contains(defaultURL) {
+            urls.insert(defaultURL, at: 0)
+        }
+
+        var seen = Set<URL>()
+        let apps = urls.compactMap { appURL -> OpenWithApplication? in
+            guard !seen.contains(appURL) else {
+                return nil
+            }
+            seen.insert(appURL)
+            return OpenWithApplication(
+                name: applicationName(for: appURL),
+                url: appURL
+            )
+        }
+
+        return apps.sorted { lhs, rhs in
+            if lhs.url == defaultURL {
+                return true
+            }
+            if rhs.url == defaultURL {
+                return false
+            }
+            return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
+        }
+    }
+
+    private func applicationName(for url: URL) -> String {
+        if let bundleName = Bundle(url: url)?.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String,
+           !bundleName.isEmpty {
+            return bundleName
+        }
+        return FileManager.default.displayName(atPath: url.path)
     }
 
     private func kindLabel(for info: FileInfo) -> String {

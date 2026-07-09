@@ -88,6 +88,7 @@
 "menu.tags.gray" = "Gris";
 "menu.tags.clear" = "Effacer les tags";
 "menu.open" = "Ouvrir";
+"menu.openWithOther" = "Autre...";
 "menu.quickLook" = "Coup d’œil";
 "menu.getInfo" = "Lire les informations";
 "menu.newFolder" = "Nouveau dossier";

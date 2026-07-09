@@ -88,6 +88,7 @@
 "menu.tags.gray" = "회색";
 "menu.tags.clear" = "태그 지우기";
 "menu.open" = "열기";
+"menu.openWithOther" = "기타...";
 "menu.quickLook" = "훑어보기";
 "menu.getInfo" = "정보 가져오기";
 "menu.newFolder" = "새 폴더";

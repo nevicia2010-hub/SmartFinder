@@ -88,6 +88,7 @@
 "menu.tags.gray" = "Cinza";
 "menu.tags.clear" = "Limpar etiquetas";
 "menu.open" = "Abrir";
+"menu.openWithOther" = "Outro...";
 "menu.quickLook" = "Vista rápida";
 "menu.getInfo" = "Obter informações";
 "menu.newFolder" = "Nova pasta";

@@ -1,5 +1,20 @@
 # Work Log
 
+## 2026-07-09
+
+### Context Menu Open With
+
+- Added a Finder-style Open With submenu to the file context menu for a single selected file.
+- The submenu lists macOS applications that can open the selected file, using the default handler first.
+- Added an `Other...` entry so users can choose an app bundle manually, such as Photoshop for a PDF, without changing the system default application.
+- Kept the action unavailable for folders, empty selection, and multi-selection to avoid ambiguous opens.
+- Added core coverage for the single-file Open With availability rule and localized the new menu item across all bundled languages.
+
+### Version And Packaging
+
+- Current released DMG: `SmartFinder-0.8.19.dmg`
+- Latest tag: `v0.8.19`
+
 ## 2026-07-07
 
 ### Column View Creation Target Fix

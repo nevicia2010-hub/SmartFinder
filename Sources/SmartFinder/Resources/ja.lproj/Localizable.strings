@@ -88,6 +88,7 @@
 "menu.tags.gray" = "グレー";
 "menu.tags.clear" = "タグを消去";
 "menu.open" = "開く";
+"menu.openWithOther" = "その他...";
 "menu.quickLook" = "クイックルック";
 "menu.getInfo" = "情報を見る";
 "menu.newFolder" = "新規フォルダ";

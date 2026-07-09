@@ -88,6 +88,7 @@
 "menu.tags.gray" = "Gray";
 "menu.tags.clear" = "Clear Tags";
 "menu.open" = "Open";
+"menu.openWithOther" = "Other...";
 "menu.quickLook" = "Quick Look";
 "menu.getInfo" = "Get Info";
 "menu.newFolder" = "New Folder";

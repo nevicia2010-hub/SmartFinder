@@ -88,6 +88,7 @@
 "menu.tags.gray" = "灰色";
 "menu.tags.clear" = "清除標籤";
 "menu.open" = "開啟";
+"menu.openWithOther" = "其他...";
 "menu.quickLook" = "快速查看";
 "menu.getInfo" = "顯示簡介";
 "menu.newFolder" = "新增資料夾";
