@@ -2,6 +2,19 @@
 
 ## 2026-07-09
 
+### Multi-Selection Drag Fix
+
+- Preserved multi-selection when starting a drag from an already selected file or folder, so the drag pasteboard keeps all selected items instead of collapsing to one item.
+- Kept Command and Shift clicks on their normal selection-changing behavior.
+- Enabled multi-selection in column view tables and made column-view selection actions read every selected row in the active column.
+- Column navigation still opens a folder on single selection; multi-selection now stays in place for batch dragging.
+- Added core coverage for the drag-selection preservation rule.
+
+### Version And Packaging
+
+- Current released DMG: `SmartFinder-0.8.21.dmg`
+- Latest tag: `v0.8.21`
+
 ### Folder Drop Target Fix
 
 - Improved in-window drag-and-drop so dropping folder A onto folder B targets folder B even when AppKit reports the proposed drop as an insertion position.

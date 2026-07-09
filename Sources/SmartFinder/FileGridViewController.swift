@@ -51,7 +51,11 @@ final class SmartCollectionView: NSCollectionView {
     }
 
     override func mouseDown(with event: NSEvent) {
+        let preservedSelection = selectionToPreserveForDrag(event)
         super.mouseDown(with: event)
+        if let preservedSelection {
+            selectionIndexPaths = preservedSelection
+        }
         if event.clickCount == 2 {
             keyDelegate?.smartCollectionViewDidDoubleClick()
         }
@@ -71,6 +75,22 @@ final class SmartCollectionView: NSCollectionView {
 
     @objc override func selectAll(_ sender: Any?) {
         keyDelegate?.smartCollectionViewDidPressCommandA()
+    }
+
+    private func selectionToPreserveForDrag(_ event: NSEvent) -> Set<IndexPath>? {
+        guard event.clickCount == 1 else {
+            return nil
+        }
+        let point = convert(event.locationInWindow, from: nil)
+        guard let indexPath = indexPathForItem(at: point),
+              SelectionDragPreservationPolicy.shouldPreserveSelection(
+                  clickedItemIsSelected: selectionIndexPaths.contains(indexPath),
+                  selectedItemCount: selectionIndexPaths.count,
+                  usesSelectionModifier: event.usesSelectionModifier
+              ) else {
+            return nil
+        }
+        return selectionIndexPaths
     }
 }
 
@@ -90,7 +110,11 @@ final class SmartTableView: NSTableView {
     }
 
     override func mouseDown(with event: NSEvent) {
+        let preservedSelection = selectionToPreserveForDrag(event)
         super.mouseDown(with: event)
+        if let preservedSelection {
+            selectRowIndexes(preservedSelection, byExtendingSelection: false)
+        }
         if event.clickCount == 2 {
             keyDelegate?.smartCollectionViewDidDoubleClick()
         }
@@ -110,6 +134,29 @@ final class SmartTableView: NSTableView {
 
     @objc override func selectAll(_ sender: Any?) {
         keyDelegate?.smartCollectionViewDidPressCommandA()
+    }
+
+    private func selectionToPreserveForDrag(_ event: NSEvent) -> IndexSet? {
+        guard event.clickCount == 1 else {
+            return nil
+        }
+        let point = convert(event.locationInWindow, from: nil)
+        let row = row(at: point)
+        guard row >= 0,
+              SelectionDragPreservationPolicy.shouldPreserveSelection(
+                  clickedItemIsSelected: selectedRowIndexes.contains(row),
+                  selectedItemCount: selectedRowIndexes.count,
+                  usesSelectionModifier: event.usesSelectionModifier
+              ) else {
+            return nil
+        }
+        return selectedRowIndexes
+    }
+}
+
+private extension NSEvent {
+    var usesSelectionModifier: Bool {
+        modifierFlags.contains(.command) || modifierFlags.contains(.shift)
     }
 }
 
@@ -1644,14 +1691,21 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         case .column:
             for table in columnTables.reversed() {
                 guard let columnIndex = columnIndex(for: table),
-                      let row = table.selectedRowIndexes.first else {
+                      !table.selectedRowIndexes.isEmpty else {
                     continue
                 }
                 let items = itemsForColumn(at: columnIndex)
-                guard items.indices.contains(row) else {
-                    continue
+                let selectedItems = table.selectedRowIndexes
+                    .sorted()
+                    .compactMap { row -> FileItem? in
+                        guard items.indices.contains(row) else {
+                            return nil
+                        }
+                        return items[row]
+                    }
+                if !selectedItems.isEmpty {
+                    return selectedItems
                 }
-                return [items[row]]
             }
             return []
         }
@@ -1786,7 +1840,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
             table.delegate = self
             table.keyDelegate = self
             table.headerView = nil
-            table.allowsMultipleSelection = false
+            table.allowsMultipleSelection = true
             table.usesAlternatingRowBackgroundColors = false
             table.backgroundColor = .controlBackgroundColor
             table.rowHeight = 32
@@ -1850,6 +1904,11 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     private func handleColumnSelection(in table: NSTableView, columnIndex: Int) {
         activeColumnIndexForCreation = columnIndex
         contextualCreationDirectoryURL = nil
+
+        guard table.selectedRowIndexes.count == 1 else {
+            updateStatus()
+            return
+        }
 
         let selectedRow = table.selectedRow
         guard selectedRow >= 0 else {

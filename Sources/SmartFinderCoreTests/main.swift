@@ -537,6 +537,38 @@ expect(
     ) == dropDefaultDirectory.standardizedFileURL,
     "dropping on empty browser space should target the current folder"
 )
+expect(
+    SelectionDragPreservationPolicy.shouldPreserveSelection(
+        clickedItemIsSelected: true,
+        selectedItemCount: 3,
+        usesSelectionModifier: false
+    ),
+    "dragging from an already selected item should preserve the multi-selection"
+)
+expect(
+    !SelectionDragPreservationPolicy.shouldPreserveSelection(
+        clickedItemIsSelected: false,
+        selectedItemCount: 3,
+        usesSelectionModifier: false
+    ),
+    "clicking an unselected item should allow the browser to replace the selection"
+)
+expect(
+    !SelectionDragPreservationPolicy.shouldPreserveSelection(
+        clickedItemIsSelected: true,
+        selectedItemCount: 1,
+        usesSelectionModifier: false
+    ),
+    "single selection does not need preservation before dragging"
+)
+expect(
+    !SelectionDragPreservationPolicy.shouldPreserveSelection(
+        clickedItemIsSelected: true,
+        selectedItemCount: 3,
+        usesSelectionModifier: true
+    ),
+    "Command or Shift clicks should keep their normal selection-changing behavior"
+)
 
 let pathFormatURLs = [
     URL(fileURLWithPath: "/Volumes/Photo Archive/Test File.txt"),
