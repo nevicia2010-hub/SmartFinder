@@ -1793,18 +1793,23 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             for url in urls {
                 try fileTagStore.clearTags(for: url)
             }
-            gridController.refresh()
+            gridController.refreshMetadata(for: urls)
         } catch {
             showOperationError(error)
         }
     }
 
     private func applyFinderLabelColor(_ color: FinderTagColor) {
+        let urls = gridController.selectedURLs()
+        guard !urls.isEmpty else {
+            NSSound.beep()
+            return
+        }
         do {
-            for url in gridController.selectedURLs() {
+            for url in urls {
                 try fileTagStore.setFinderLabelColor(color, for: url)
             }
-            gridController.refresh()
+            gridController.refreshMetadata(for: urls)
         } catch {
             showOperationError(error)
         }

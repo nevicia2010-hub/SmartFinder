@@ -508,6 +508,24 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         currentFolderURL
     }
 
+    func refreshMetadata(for changedItemURLs: [URL]) {
+        let affectedDirectories = FileMetadataRefreshPlan.affectedDirectoryURLs(changedItemURLs: changedItemURLs)
+        guard !affectedDirectories.isEmpty else {
+            return
+        }
+
+        switch FileMetadataRefreshPlan.refreshScope(
+            isColumnView: viewMode == .column,
+            currentFolderURL: currentFolderURL,
+            affectedDirectoryURLs: affectedDirectories
+        ) {
+        case .none:
+            break
+        case .currentFolder, .visibleColumns:
+            refreshItemMetadata(for: changedItemURLs)
+        }
+    }
+
     func numberOfRows(in tableView: NSTableView) -> Int {
         if tableView === self.tableView {
             return displayedItems.count
@@ -559,9 +577,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         case "name":
             let cell = tableCell(identifier: "nameCell", includesIcon: true)
             cell.textField?.stringValue = displayName(for: item)
-            let icon = NSWorkspace.shared.icon(forFile: item.url.path)
-            icon.size = NSSize(width: 18, height: 18)
-            cell.imageView?.image = icon
+            cell.imageView?.image = visualIconProvider.icon(for: item, size: 18)
             return cell
         case "type":
             let cell = tableCell(identifier: "typeCell", includesIcon: false)
@@ -1186,6 +1202,92 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
 
         selectColumnPathRows()
         updateStatus()
+    }
+
+    private func refreshItemMetadata(for urls: [URL]) {
+        let labelNumbersByPath = Dictionary(
+            uniqueKeysWithValues: FileTransferPlan.uniqueSourceURLs(urls).map { url in
+                (url.standardizedFileURL.path, finderLabelNumber(for: url))
+            }
+        )
+        guard !labelNumbersByPath.isEmpty else {
+            return
+        }
+
+        allItems = allItems.map { item in
+            itemWithUpdatedFinderLabelNumber(item, labelNumbersByPath: labelNumbersByPath)
+        }
+        displayedItems = displayedItems.map { item in
+            itemWithUpdatedFinderLabelNumber(item, labelNumbersByPath: labelNumbersByPath)
+        }
+        columnFolders = columnFolders.map { folder in
+            ColumnFolder(
+                url: folder.url,
+                items: folder.items.map { item in
+                    itemWithUpdatedFinderLabelNumber(item, labelNumbersByPath: labelNumbersByPath)
+                },
+                selectedURL: folder.selectedURL
+            )
+        }
+
+        reloadRowsForMetadataChanges(paths: Set(labelNumbersByPath.keys))
+        updateStatus()
+    }
+
+    private func finderLabelNumber(for url: URL) -> Int {
+        (try? url.resourceValues(forKeys: [.labelNumberKey]).labelNumber) ?? 0
+    }
+
+    private func itemWithUpdatedFinderLabelNumber(
+        _ item: FileItem,
+        labelNumbersByPath: [String: Int]
+    ) -> FileItem {
+        guard let labelNumber = labelNumbersByPath[item.url.standardizedFileURL.path] else {
+            return item
+        }
+        return FileItem(
+            url: item.url,
+            name: item.name,
+            isDirectory: item.isDirectory,
+            category: item.category,
+            byteSize: item.byteSize,
+            modifiedAt: item.modifiedAt,
+            finderLabelNumber: labelNumber
+        )
+    }
+
+    private func reloadRowsForMetadataChanges(paths: Set<String>) {
+        switch viewMode {
+        case .icon:
+            let indexPaths = displayedItems.enumerated().compactMap { index, item in
+                paths.contains(item.url.standardizedFileURL.path) ? IndexPath(item: index, section: 0) : nil
+            }
+            if !indexPaths.isEmpty {
+                collectionView.reloadItems(at: Set(indexPaths))
+            }
+        case .list:
+            let rowIndexes = displayedItems.enumerated().compactMap { index, item in
+                paths.contains(item.url.standardizedFileURL.path) ? index : nil
+            }
+            if !rowIndexes.isEmpty {
+                tableView.reloadData(
+                    forRowIndexes: IndexSet(rowIndexes),
+                    columnIndexes: IndexSet(integersIn: 0..<tableView.numberOfColumns)
+                )
+            }
+        case .column:
+            for (columnIndex, table) in columnTables.enumerated() {
+                let rowIndexes = itemsForColumn(at: columnIndex).enumerated().compactMap { index, item in
+                    paths.contains(item.url.standardizedFileURL.path) ? index : nil
+                }
+                if !rowIndexes.isEmpty {
+                    table.reloadData(
+                        forRowIndexes: IndexSet(rowIndexes),
+                        columnIndexes: IndexSet(integersIn: 0..<table.numberOfColumns)
+                    )
+                }
+            }
+        }
     }
 
     private func updateColumnTableHeight(at index: Int) {
@@ -2076,9 +2178,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         cell.textField?.stringValue = item.isDirectory
             ? "\(displayName(for: item))  >"
             : displayName(for: item)
-        let icon = NSWorkspace.shared.icon(forFile: item.url.path)
-        icon.size = NSSize(width: 18, height: 18)
-        cell.imageView?.image = icon
+        cell.imageView?.image = visualIconProvider.icon(for: item, size: 18)
         return cell
     }
 

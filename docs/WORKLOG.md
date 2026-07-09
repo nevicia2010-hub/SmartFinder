@@ -2,6 +2,18 @@
 
 ## 2026-07-09
 
+### Tag Color Refresh Fix
+
+- Fixed tag color changes in list view and column view so folder colors update immediately after applying or clearing Finder labels.
+- Replaced the tag action's full browser refresh with a local metadata refresh for the affected selected items, avoiding the visible full-window flash.
+- Updated list and column cells to use the same tinted folder icon rendering as icon view.
+- Added core coverage for metadata refresh scope decisions so column view can update visible rows without rebuilding the browser.
+
+### Version And Packaging
+
+- Current released DMG: `SmartFinder-0.8.24.dmg`
+- Latest tag: `v0.8.24`
+
 ### Rename Navigation Fix
 
 - Fixed a column-view rename flow where confirming a folder rename could leave SmartFinder inside the renamed folder.

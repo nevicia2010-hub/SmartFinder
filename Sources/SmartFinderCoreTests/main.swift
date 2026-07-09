@@ -119,6 +119,27 @@ expect(
     ) == .none,
     "icon and list transfers should skip reloads when the current folder did not change"
 )
+let metadataChangedFile = operationsDirectory.appendingPathComponent("metadata-file.txt")
+expect(
+    FileMetadataRefreshPlan.affectedDirectoryURLs(changedItemURLs: [metadataChangedFile]) == [operationsDirectory.standardizedFileURL],
+    "metadata refresh should mark the changed item's parent directory as affected"
+)
+expect(
+    FileMetadataRefreshPlan.refreshScope(
+        isColumnView: true,
+        currentFolderURL: operationsDirectory,
+        affectedDirectoryURLs: [operationsDirectory]
+    ) == .visibleColumns,
+    "column-view metadata refresh should update visible columns without rebuilding the whole browser"
+)
+expect(
+    FileMetadataRefreshPlan.refreshScope(
+        isColumnView: false,
+        currentFolderURL: operationsDirectory,
+        affectedDirectoryURLs: [operationsDirectory]
+    ) == .currentFolder,
+    "icon and list metadata refresh should update the current folder when it is affected"
+)
 let deletedFolder = operationsDirectory.appendingPathComponent("Deleted Folder", isDirectory: true)
 let deletedChildFolder = deletedFolder.appendingPathComponent("Child", isDirectory: true)
 expect(
