@@ -33,8 +33,9 @@ final class FileItemCell: NSCollectionViewItem {
         tagIndicator.isHidden = true
 
         titleField.alignment = .center
-        titleField.lineBreakMode = .byTruncatingMiddle
-        titleField.maximumNumberOfLines = 2
+        titleField.lineBreakMode = .byWordWrapping
+        titleField.maximumNumberOfLines = IconLabelLayoutPolicy.maximumTitleLineCount
+        titleField.usesSingleLineMode = false
         titleField.font = FinderFonts.iconTitle
         titleField.translatesAutoresizingMaskIntoConstraints = false
 
@@ -117,6 +118,7 @@ final class FileItemCell: NSCollectionViewItem {
         iconWidthConstraint?.constant = iconSize
         iconHeightConstraint?.constant = iconSize
         iconView.image = image
+        titleField.font = FinderFonts.iconTitle(forIconSize: iconSize)
         selectionCheckbox.isHidden = !showsSelectionCheckbox
         selectionCheckbox.state = isSelected ? .on : .off
         self.onCheckboxToggle = onCheckboxToggle

@@ -791,6 +791,23 @@ expect(FinderToolbarMetrics.viewModeSegmentWidth >= 150, "direct view mode contr
 expect(FinderToolbarMetrics.directViewModeMinimumWindowWidth > 0, "toolbar should define when direct view mode controls are visible")
 
 expect(
+    IconLabelLayoutPolicy.titleFontSize(forIconSize: 64) == 12,
+    "small icon labels should keep Finder-like compact title text"
+)
+expect(
+    IconLabelLayoutPolicy.titleFontSize(forIconSize: 180) == 14,
+    "large icon labels should scale title text modestly with icon size"
+)
+expect(
+    IconLabelLayoutPolicy.maximumTitleLineCount == 2,
+    "icon labels should allow long names to wrap to two lines"
+)
+expect(
+    IconLabelLayoutPolicy.itemHeight(forIconSize: 180) >= 180 + 88,
+    "large icon cells should reserve enough height for wrapped names and subtitles"
+)
+
+expect(
     FinderKeyboardShortcut.resolve(keyCode: 33, charactersIgnoringModifiers: "[", modifiers: [.command]) == .goBack,
     "Command-[ should map to back navigation"
 )

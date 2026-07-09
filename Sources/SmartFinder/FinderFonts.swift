@@ -1,4 +1,5 @@
 import AppKit
+import SmartFinderCore
 
 enum FinderFonts {
     static var toolbarTitle: NSFont {
@@ -31,6 +32,13 @@ enum FinderFonts {
 
     static var iconTitle: NSFont {
         preferred(.caption1, fallback: .systemFont(ofSize: 12))
+    }
+
+    static func iconTitle(forIconSize iconSize: CGFloat) -> NSFont {
+        .systemFont(
+            ofSize: CGFloat(IconLabelLayoutPolicy.titleFontSize(forIconSize: Double(iconSize))),
+            weight: .regular
+        )
     }
 
     static var iconSubtitle: NSFont {

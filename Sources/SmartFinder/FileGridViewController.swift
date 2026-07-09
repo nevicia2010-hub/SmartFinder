@@ -2527,7 +2527,10 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     }
 
     private func itemSize(forIconSize iconSize: CGFloat) -> NSSize {
-        NSSize(width: max(112, iconSize + 36), height: iconSize + 72)
+        NSSize(
+            width: CGFloat(IconLabelLayoutPolicy.itemWidth(forIconSize: Double(iconSize))),
+            height: CGFloat(IconLabelLayoutPolicy.itemHeight(forIconSize: Double(iconSize)))
+        )
     }
 
     private func subtitle(for item: FileItem) -> String {

@@ -2,6 +2,18 @@
 
 ## 2026-07-09
 
+### Icon Label Readability
+
+- Improved icon-view labels so long file and folder names wrap to two lines instead of staying as a single truncated line.
+- Icon-view title text now scales modestly with the icon-size slider, from 12pt to 14pt, while keeping list and column text unchanged.
+- Increased icon cell height to reserve room for wrapped names and subtitles.
+- Added core coverage for icon label sizing and wrapping policy.
+
+### Version And Packaging
+
+- Current released DMG: `SmartFinder-0.8.27.dmg`
+- Latest tag: `v0.8.27`
+
 ### Finder-Style Column Root
 
 - Fixed column view so sidebar-selected sources act as the column root, matching Finder behavior.
