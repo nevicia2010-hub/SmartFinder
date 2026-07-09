@@ -2,6 +2,18 @@
 
 ## 2026-07-09
 
+### Windows-Style Cut And Paste
+
+- Added Cut to the SmartFinder context menu and menu bar with `Command-X`.
+- SmartFinder file paste now respects an internal cut marker: cut files are moved on paste, copied files are still copied.
+- Added localized Cut menu labels across bundled languages.
+- Added core coverage for cut keyboard routing, menu exposure, and clipboard operation mapping.
+
+### Version And Packaging
+
+- Current released DMG: `SmartFinder-0.8.28.dmg`
+- Latest tag: `v0.8.28`
+
 ### Icon Label Readability
 
 - Improved icon-view labels so long file and folder names wrap to two lines instead of staying as a single truncated line.

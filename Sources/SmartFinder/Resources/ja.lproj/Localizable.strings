@@ -97,6 +97,7 @@
 "menu.newCSVFile" = "新規CSVファイル";
 "menu.rename" = "名前を変更";
 "menu.moveToTrash" = "ゴミ箱に入れる";
+"menu.cut" = "カット";
 "menu.copy" = "コピー";
 "menu.copyName" = "名前をコピー";
 "menu.copyTo" = "コピー先...";

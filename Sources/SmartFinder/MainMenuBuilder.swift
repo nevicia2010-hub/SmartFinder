@@ -42,6 +42,8 @@ final class MainMenuBuilder {
         }
 
         switch action {
+        case .cut:
+            return #selector(NSText.cut(_:))
         case .copy:
             return #selector(NSText.copy(_:))
         case .paste:
@@ -55,7 +57,7 @@ final class MainMenuBuilder {
 
     private static func menuTarget(for action: SmartFinderMenuAction?, controller: MainWindowController) -> AnyObject? {
         switch action {
-        case .copy, .paste, .selectAll:
+        case .cut, .copy, .paste, .selectAll:
             return nil
         default:
             return controller

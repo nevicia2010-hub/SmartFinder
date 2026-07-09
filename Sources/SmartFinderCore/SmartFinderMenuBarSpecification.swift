@@ -17,6 +17,7 @@ public enum SmartFinderMenuAction: String, Equatable, Sendable {
     case cancelFolderSizeCalculation
     case revealInFinder
     case copy
+    case cut
     case paste
     case copyName
     case copyPath
@@ -132,6 +133,7 @@ public enum SmartFinderMenuBarSpecification {
             SmartFinderMenuItemSpecification(titleKey: "menu.revealInFinder", fallbackTitle: "Reveal in Finder", action: .revealInFinder)
         ]),
         SmartFinderMenuSpecification(titleKey: "menu.edit", fallbackTitle: "Edit", items: [
+            SmartFinderMenuItemSpecification(titleKey: "menu.cut", fallbackTitle: "Cut", action: .cut, keyEquivalent: "x", modifiers: [.command]),
             SmartFinderMenuItemSpecification(titleKey: "menu.copy", fallbackTitle: "Copy", action: .copy, keyEquivalent: "c", modifiers: [.command]),
             SmartFinderMenuItemSpecification(titleKey: "menu.paste", fallbackTitle: "Paste", action: .paste, keyEquivalent: "v", modifiers: [.command]),
             SmartFinderMenuItemSpecification(titleKey: "menu.copyName", fallbackTitle: "Copy Name", action: .copyName),

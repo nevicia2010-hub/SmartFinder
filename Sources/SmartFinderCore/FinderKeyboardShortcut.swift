@@ -18,6 +18,7 @@ public enum FinderKeyboardShortcut: Equatable, Sendable {
     case renameSelection
     case moveToTrash
     case selectAll
+    case cut
     case copy
     case paste
     case refresh
@@ -55,6 +56,8 @@ public enum FinderKeyboardShortcut: Equatable, Sendable {
             switch (keyCode, character) {
             case (_, "a"):
                 return .selectAll
+            case (_, "x"):
+                return .cut
             case (_, "c"):
                 return .copy
             case (_, "v"):

@@ -26,6 +26,7 @@ protocol SmartCollectionViewKeyDelegate: AnyObject {
     func smartCollectionViewDidPressCommandA()
     func smartCollectionViewDidDoubleClick()
     func smartCollectionViewDidPressReturn()
+    func smartCollectionViewDidPressCut()
     func smartCollectionViewDidPressCopy()
     func smartCollectionViewDidPressPaste()
     func smartCollectionViewDidPressRefresh()
@@ -67,6 +68,10 @@ final class SmartCollectionView: NSCollectionView {
 
     @objc func copy(_ sender: Any?) {
         keyDelegate?.smartCollectionViewDidPressCopy()
+    }
+
+    @objc func cut(_ sender: Any?) {
+        keyDelegate?.smartCollectionViewDidPressCut()
     }
 
     @objc func paste(_ sender: Any?) {
@@ -126,6 +131,10 @@ final class SmartTableView: NSTableView {
 
     @objc func copy(_ sender: Any?) {
         keyDelegate?.smartCollectionViewDidPressCopy()
+    }
+
+    @objc func cut(_ sender: Any?) {
+        keyDelegate?.smartCollectionViewDidPressCut()
     }
 
     @objc func paste(_ sender: Any?) {
@@ -798,6 +807,8 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
             smartCollectionViewDidPressMoveToTrash()
         case .selectAll:
             smartCollectionViewDidPressCommandA()
+        case .cut:
+            smartCollectionViewDidPressCut()
         case .copy:
             smartCollectionViewDidPressCopy()
         case .paste:
@@ -854,6 +865,10 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
 
     func smartCollectionViewDidPressCopy() {
         copySelectionToPasteboard()
+    }
+
+    func smartCollectionViewDidPressCut() {
+        cutSelectionToPasteboard()
     }
 
     func smartCollectionViewDidPressPaste() {
@@ -988,6 +1003,14 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     }
 
     func copySelectionToPasteboard() {
+        writeSelectedFileURLsToPasteboard(operationMarker: FileClipboardPolicy.copyMarker)
+    }
+
+    func cutSelectionToPasteboard() {
+        writeSelectedFileURLsToPasteboard(operationMarker: FileClipboardPolicy.moveMarker)
+    }
+
+    private func writeSelectedFileURLsToPasteboard(operationMarker: String) {
         let urls = selectedItems().map(\.url)
         guard !urls.isEmpty else {
             return
@@ -996,6 +1019,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.writeObjects(urls as [NSURL])
+        pasteboard.setString(operationMarker, forType: NSPasteboard.PasteboardType(FileClipboardPolicy.operationPasteboardType))
     }
 
     func copySelectedPathsToPasteboard() {
@@ -1567,9 +1591,15 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
             return
         }
 
+        let marker = NSPasteboard.general.string(forType: NSPasteboard.PasteboardType(FileClipboardPolicy.operationPasteboardType))
+        let operation = FileClipboardPolicy.operation(forMarker: marker)
+
         do {
             for url in urls {
-                try fileOperations.copy(url, toDirectory: currentFolderURL)
+                try fileOperations.transfer(url, toDirectory: currentFolderURL, operation: operation)
+            }
+            if operation == .move {
+                NSPasteboard.general.clearContents()
             }
             refresh()
         } catch {
@@ -1673,6 +1703,10 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
 
     @objc private func copyFromMenu() {
         copySelectionToPasteboard()
+    }
+
+    @objc private func cutFromMenu() {
+        cutSelectionToPasteboard()
     }
 
     @objc private func copyPathFromMenu() {
@@ -2222,6 +2256,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         menu.addItem(menuItem("menu.rename", fallback: "Rename", action: #selector(renameFromMenu), enabled: selectedItems().count == 1))
         menu.addItem(menuItem("menu.moveToTrash", fallback: "Move to Trash", action: #selector(moveToTrashFromMenu), enabled: hasSelection))
         menu.addItem(NSMenuItem.separator())
+        menu.addItem(menuItem("menu.cut", fallback: "Cut", action: #selector(cutFromMenu), enabled: hasSelection))
         menu.addItem(menuItem("menu.copy", fallback: "Copy", action: #selector(copyFromMenu), enabled: hasSelection))
         menu.addItem(menuItem("menu.copyName", fallback: "Copy Name", action: #selector(copyNameFromMenu), enabled: hasSelection))
         menu.addItem(menuItem("menu.copyPath", fallback: "Copy Path", action: #selector(copyPathFromMenu), enabled: hasSelection))

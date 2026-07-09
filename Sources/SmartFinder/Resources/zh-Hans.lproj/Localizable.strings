@@ -97,6 +97,7 @@
 "menu.newCSVFile" = "新建 CSV 文件";
 "menu.rename" = "重命名";
 "menu.moveToTrash" = "移到废纸篓";
+"menu.cut" = "剪切";
 "menu.copy" = "复制";
 "menu.copyName" = "复制文件名";
 "menu.copyTo" = "复制到...";

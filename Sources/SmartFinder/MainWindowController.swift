@@ -496,6 +496,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         case .renameSelection,
              .moveToTrash,
              .selectAll,
+             .cut,
              .copy,
              .paste:
             return false
@@ -566,7 +567,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
              .sortAscending,
              .sortDescending:
             return true
-        case .copy, .paste, .selectAll:
+        case .cut, .copy, .paste, .selectAll:
             return true
         }
     }
@@ -654,7 +655,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
             sortAscending()
         case .sortDescending:
             sortDescending()
-        case .copy, .paste, .selectAll:
+        case .cut, .copy, .paste, .selectAll:
             break
         }
     }

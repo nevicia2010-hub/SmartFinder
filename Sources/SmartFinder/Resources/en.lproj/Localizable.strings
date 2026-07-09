@@ -97,6 +97,7 @@
 "menu.newCSVFile" = "New CSV File";
 "menu.rename" = "Rename";
 "menu.moveToTrash" = "Move to Trash";
+"menu.cut" = "Cut";
 "menu.copy" = "Copy";
 "menu.copyName" = "Copy Name";
 "menu.copyTo" = "Copy To...";

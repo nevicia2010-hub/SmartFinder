@@ -97,6 +97,7 @@
 "menu.newCSVFile" = "새 CSV 파일";
 "menu.rename" = "이름 변경";
 "menu.moveToTrash" = "휴지통으로 이동";
+"menu.cut" = "오려두기";
 "menu.copy" = "복사";
 "menu.copyName" = "이름 복사";
 "menu.copyTo" = "다음으로 복사...";

@@ -843,6 +843,16 @@ expect(
     FinderKeyboardShortcut.resolve(keyCode: 8, charactersIgnoringModifiers: "c", modifiers: [.command, .option]) == .copyPath,
     "Option-Command-C should map to copying selected paths"
 )
+expect(
+    FinderKeyboardShortcut.resolve(keyCode: 7, charactersIgnoringModifiers: "x", modifiers: [.command]) == .cut,
+    "Command-X should map to cutting selected files for Windows-style move paste"
+)
+expect(
+    FileClipboardPolicy.operation(forMarker: FileClipboardPolicy.moveMarker) == .move &&
+    FileClipboardPolicy.operation(forMarker: FileClipboardPolicy.copyMarker) == .copy &&
+    FileClipboardPolicy.operation(forMarker: nil) == .copy,
+    "file clipboard policy should map SmartFinder cut markers to move operations and default to copy"
+)
 let menuSpecs = SmartFinderMenuBarSpecification.menus
 expect(
     menuSpecs.map(\.titleKey).contains("menu.view"),
@@ -866,6 +876,10 @@ expect(
 expect(
     menuSpecs.flatMap(\.items).contains { $0.action == .copyPath && $0.modifiers == [.command, .option] },
     "menu bar should expose Copy Path for users who do not know the shortcut"
+)
+expect(
+    menuSpecs.flatMap(\.items).contains { $0.action == .cut && $0.keyEquivalent == "x" && $0.modifiers == [.command] },
+    "menu bar should expose Cut with Command-X for Windows-style file moves"
 )
 expect(
     menuSpecs.flatMap(\.items).contains { $0.action == .newCSVFile },
