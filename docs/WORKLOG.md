@@ -1,5 +1,24 @@
 # Work Log
 
+## 2026-07-23
+
+### External Extraction Refresh
+
+- Added an event-driven monitor for the current folder so files and folders created by external apps such as FastZip appear automatically.
+- Directory events are debounced for 0.35 seconds and applied as an in-place list update, avoiding polling, full-disk scanning, and visible whole-window reloads.
+- Icon and list views preserve the current selection; column view updates only the affected current column.
+- Added a real filesystem regression test that creates an extraction-style output folder from outside the browser refresh path.
+
+### Dark Mode Search Contrast
+
+- Added an appearance-aware fill and border to the toolbar search field so its boundary remains visible on the dark header material.
+- Kept the light-mode treatment quieter and connected both styles to the existing system appearance refresh path.
+
+### Version And Packaging
+
+- Current local DMG: `SmartFinder-0.8.34.dmg`
+- Current local package version: `0.8.34`
+
 ## 2026-07-14
 
 ### Finder-Style Rename Editing

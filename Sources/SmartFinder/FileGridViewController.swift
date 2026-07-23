@@ -247,6 +247,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
     private let fileInfoProvider = FileInfoProvider()
     private let visualIconProvider = VisualIconProvider()
     private let thumbnailPipeline = ThumbnailPipeline()
+    private let directoryChangeMonitor = DirectoryChangeMonitor()
     private let quickLookController = QuickLookController()
     private let fileClipboardSession: FileClipboardSession
     private let fileOperationExecutor: FileOperationExecutor
@@ -432,6 +433,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         let requestID = UUID()
         directoryLoadToken = requestID
         currentFolderURL = folderURL
+        startMonitoringDirectory(folderURL)
         allItems = []
         displayedItems = []
         columnFolders = []
@@ -486,6 +488,133 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
             return
         }
         load(folderURL: currentFolderURL)
+    }
+
+    private func startMonitoringDirectory(_ folderURL: URL) {
+        let monitoredURL = folderURL.standardizedFileURL
+        directoryChangeMonitor.startMonitoring(directoryURL: monitoredURL) { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self,
+                      self.currentFolderURL?.standardizedFileURL == monitoredURL else {
+                    return
+                }
+                self.refreshCurrentFolderSilently()
+            }
+        }
+    }
+
+    private func refreshCurrentFolderSilently() {
+        guard let folderURL = currentFolderURL else {
+            return
+        }
+
+        let requestID = UUID()
+        directoryLoadToken = requestID
+        let options = DirectoryLoadOptions(includesHiddenItems: includesHiddenItems)
+        Task { [weak self] in
+            let result = await Task.detached(priority: .utility) {
+                do {
+                    return BackgroundOperationResult.success(
+                        try DirectoryStore().loadItems(in: folderURL, options: options)
+                    )
+                } catch {
+                    return BackgroundOperationResult<[FileItem]>.failure(error.localizedDescription)
+                }
+            }.value
+            guard let self,
+                  LatestRequestPolicy.shouldApply(
+                    requestID: requestID,
+                    currentRequestID: self.directoryLoadToken,
+                    requestedURL: folderURL,
+                    currentURL: self.currentFolderURL
+                  ) else {
+                return
+            }
+
+            switch result {
+            case .success(let items):
+                guard items != self.allItems else {
+                    return
+                }
+                self.applyExternalDirectoryItems(items, folderURL: folderURL)
+            case .failure(let message):
+                self.onStatusChange?(
+                    L10n.format(
+                        "error.cannotReadFolder",
+                        fallback: "Cannot read folder: %@",
+                        message
+                    )
+                )
+            }
+        }
+    }
+
+    private func applyExternalDirectoryItems(_ items: [FileItem], folderURL: URL) {
+        thumbnailPipeline.cancelAll()
+
+        switch viewMode {
+        case .icon, .list:
+            let selectedURLs = Set(selectedItems().map(\.url))
+            allItems = items
+            updateDisplayedItems()
+            if viewMode == .icon {
+                collectionView.reloadData()
+            } else {
+                tableView.reloadData()
+            }
+            select(urls: selectedURLs)
+        case .column:
+            guard let columnIndex = columnFolders.firstIndex(where: {
+                $0.url.standardizedFileURL == folderURL.standardizedFileURL
+            }) else {
+                allItems = items
+                updateDisplayedItems()
+                rebuildColumnView(for: folderURL)
+                updateStatus()
+                return
+            }
+
+            let table = columnTables.indices.contains(columnIndex) ? columnTables[columnIndex] : nil
+            let selectedURLs = table.map {
+                selectedURLsInColumn($0, columnIndex: columnIndex)
+            } ?? Set<URL>()
+            let folder = columnFolders[columnIndex]
+            allItems = items
+            updateDisplayedItems()
+            columnFolders[columnIndex] = ColumnFolder(
+                url: folder.url,
+                items: displayedItems,
+                selectedURL: folder.selectedURL
+            )
+
+            if let table {
+                updateColumnTableHeight(at: columnIndex)
+                table.reloadData()
+                restoreSelection(in: table, columnIndex: columnIndex, urls: selectedURLs)
+            }
+        }
+
+        updateStatus()
+    }
+
+    private func selectedURLsInColumn(_ table: NSTableView, columnIndex: Int) -> Set<URL> {
+        let items = itemsForColumn(at: columnIndex)
+        return Set(table.selectedRowIndexes.compactMap { row in
+            items.indices.contains(row) ? items[row].url : nil
+        })
+    }
+
+    private func restoreSelection(in table: NSTableView, columnIndex: Int, urls: Set<URL>) {
+        guard !urls.isEmpty else {
+            return
+        }
+        let items = itemsForColumn(at: columnIndex)
+        let indexes = items.enumerated().compactMap { index, item in
+            urls.contains(item.url) ? index : nil
+        }
+        suppressColumnSelectionChange = true
+        table.selectRowIndexes(IndexSet(indexes), byExtendingSelection: false)
+        suppressColumnSelectionChange = false
     }
 
     func setColumnRootURL(_ url: URL?) {
@@ -2409,6 +2538,7 @@ final class FileGridViewController: NSViewController, NSCollectionViewDataSource
         columnNavigationToken = token
         directoryLoadToken = UUID()
         currentFolderURL = folderURL
+        startMonitoringDirectory(folderURL)
         filterText = ""
         allItems = []
         displayedItems = []

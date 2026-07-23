@@ -1,4 +1,5 @@
 import Darwin
+import Dispatch
 import Foundation
 import SmartFinderCore
 
@@ -25,6 +26,28 @@ let operationsDirectory = try temporaryTestDirectory()
 defer {
     try? FileManager.default.removeItem(at: operationsDirectory)
 }
+
+let externallyChangedDirectory = try temporaryTestDirectory()
+defer {
+    try? FileManager.default.removeItem(at: externallyChangedDirectory)
+}
+let externalDirectoryChange = DispatchSemaphore(value: 0)
+let directoryChangeMonitor = DirectoryChangeMonitor(debounceInterval: 0.05)
+expect(
+    directoryChangeMonitor.startMonitoring(directoryURL: externallyChangedDirectory) {
+        externalDirectoryChange.signal()
+    },
+    "directory monitoring should start for a readable folder"
+)
+try FileManager.default.createDirectory(
+    at: externallyChangedDirectory.appendingPathComponent("FastZip Output", isDirectory: true),
+    withIntermediateDirectories: false
+)
+expect(
+    externalDirectoryChange.wait(timeout: .now() + 2) == .success,
+    "an externally created extraction folder should trigger a directory refresh event"
+)
+directoryChangeMonitor.stopMonitoring()
 
 let createdFolder = try fileOperations.createFolder(named: "Shoot", in: operationsDirectory)
 expect(
@@ -1095,6 +1118,18 @@ expect(FinderToolbarMetrics.labeledButtonHeight >= 52, "labeled toolbar buttons 
 expect(FinderToolbarMetrics.usesPreferredTextStyles, "interface text should use system preferred text styles where AppKit allows")
 expect(FinderToolbarMetrics.viewModeSegmentWidth >= 150, "direct view mode control should have enough width for Finder-like segments")
 expect(FinderToolbarMetrics.directViewModeMinimumWindowWidth > 0, "toolbar should define when direct view mode controls are visible")
+expect(
+    FinderToolbarMetrics.darkSearchFieldBackgroundAlpha >= 0.14,
+    "dark mode search should use a visible background fill"
+)
+expect(
+    FinderToolbarMetrics.darkSearchFieldBorderAlpha >= 0.30,
+    "dark mode search should use a clearly visible border"
+)
+expect(
+    FinderToolbarMetrics.darkSearchFieldBorderAlpha > FinderToolbarMetrics.lightSearchFieldBorderAlpha,
+    "dark mode search should use stronger contrast than light mode"
+)
 
 expect(
     IconLabelLayoutPolicy.titleFontSize(forIconSize: 64) == 12,

@@ -777,6 +777,14 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
 
         searchField.delegate = self
         searchField.placeholderString = L10n.string("search.placeholder", fallback: "Search current folder")
+        searchField.isBezeled = false
+        searchField.drawsBackground = false
+        searchField.focusRingType = .exterior
+        searchField.wantsLayer = true
+        searchField.layer?.cornerRadius = CGFloat(FinderToolbarMetrics.searchFieldCornerRadius)
+        searchField.layer?.cornerCurve = .continuous
+        searchField.layer?.borderWidth = 1
+        refreshSearchFieldAppearance()
 
         toolbarTitleField.font = FinderFonts.toolbarTitle
         toolbarTitleField.textColor = .labelColor
@@ -1275,6 +1283,7 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         toolbarTitleField.textColor = .labelColor
         secondaryPathField.textColor = .secondaryLabelColor
         statusField.textColor = .secondaryLabelColor
+        refreshSearchFieldAppearance()
         updateNavigationButtons()
         refreshViewModeControlImages()
         refreshToolbarButtonImages(in: window?.contentView)
@@ -1287,6 +1296,32 @@ final class MainWindowController: NSWindowController, NSSearchFieldDelegate, NSW
         }
         detailsPane.refreshAppearance()
         window?.contentView?.needsDisplay = true
+    }
+
+    private func refreshSearchFieldAppearance() {
+        let isDark = searchField.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        let backgroundAlpha = isDark
+            ? FinderToolbarMetrics.darkSearchFieldBackgroundAlpha
+            : FinderToolbarMetrics.lightSearchFieldBackgroundAlpha
+        let borderAlpha = isDark
+            ? FinderToolbarMetrics.darkSearchFieldBorderAlpha
+            : FinderToolbarMetrics.lightSearchFieldBorderAlpha
+        let contrastColor = isDark ? NSColor.white : NSColor.black
+
+        searchField.textColor = .labelColor
+        searchField.layer?.backgroundColor = contrastColor
+            .withAlphaComponent(CGFloat(backgroundAlpha))
+            .cgColor
+        searchField.layer?.borderColor = contrastColor
+            .withAlphaComponent(CGFloat(borderAlpha))
+            .cgColor
+        searchField.placeholderAttributedString = NSAttributedString(
+            string: L10n.string("search.placeholder", fallback: "Search current folder"),
+            attributes: [
+                .font: FinderFonts.toolbarField,
+                .foregroundColor: NSColor.secondaryLabelColor
+            ]
+        )
     }
 
     private func refreshToolbarButtonImages(in view: NSView?) {

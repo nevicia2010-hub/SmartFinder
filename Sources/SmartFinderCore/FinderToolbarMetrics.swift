@@ -10,6 +10,11 @@ public enum FinderToolbarMetrics {
     public static let viewModeSegmentWidth: Double = 170
     public static let directViewModeMinimumWindowWidth: Double = 1260
     public static let fullScreenTopGuard: Double = 30
+    public static let darkSearchFieldBackgroundAlpha: Double = 0.16
+    public static let darkSearchFieldBorderAlpha: Double = 0.36
+    public static let lightSearchFieldBackgroundAlpha: Double = 0.05
+    public static let lightSearchFieldBorderAlpha: Double = 0.16
+    public static let searchFieldCornerRadius: Double = 10
     public static let sidebarWidth: Double = 224
     public static let sidebarContentWidth: Double = 200
     public static let sidebarTopInset: Double = 90
